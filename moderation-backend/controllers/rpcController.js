@@ -2,10 +2,10 @@ const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-  console.warn("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY. Admin functions will fail.");
+  console.warn("Missing SUPABASE_URL or SUPABASE_KEY. Admin functions will fail.");
 }
 
 const supabaseAdmin = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
@@ -194,3 +194,26 @@ exports.disconnectPlatform = async (req, res) => res.json({ ok: true });
 exports.syncPlatform = async (req, res) => res.json({ status: "success", analyzed: 0, toxic: 0 });
 exports.syncAllPlatforms = async (req, res) => res.json({ status: "success", analyzed: 0, toxic: 0 });
 exports.seedSampleData = async (req, res) => res.json({ count: 0 });
+
+const instagramService = require('../services/instagramService');
+
+exports.testInstagramConnection = async (req, res, next) => {
+  try {
+    const result = await instagramService.testInstagramConnection();
+    res.json(result);
+  } catch (e) { next(e); }
+};
+
+exports.syncInstagramNow = async (req, res, next) => {
+  try {
+    const result = await instagramService.syncInstagramForUser(supabaseAdmin, req.body.userId || "dummy-user");
+    res.json(result);
+  } catch (e) { next(e); }
+};
+
+exports.disconnectInstagram = async (req, res, next) => {
+  try {
+    await instagramService.disconnectInstagramForUser(supabaseAdmin, req.body.userId || "dummy-user");
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+};
