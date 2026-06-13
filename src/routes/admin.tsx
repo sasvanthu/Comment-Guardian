@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+
+import { useQuery, useMutation, useQueryClient } from "@/hooks/mock-query";
 import { useState } from "react";
 import { Trash2, UserPlus, ShieldCheck, ShieldOff } from "lucide-react";
 import { toast } from "sonner";
@@ -20,17 +20,14 @@ import { useAuth } from "@/hooks/use-auth";
 import { listUsers, createUser, deleteUser, setUserRole } from "@/lib/admin.functions";
 import { formatDistanceToNow } from "date-fns";
 
-export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Admin — ModGuard" }] }),
-  component: AdminPage,
-});
+export default AdminPage;
 
 function AdminPage() {
   const { isAdmin, loading } = useAuth();
-  const list = useServerFn(listUsers);
-  const create = useServerFn(createUser);
-  const del = useServerFn(deleteUser);
-  const setRole = useServerFn(setUserRole);
+  const list = listUsers;
+  const create = createUser;
+  const del = deleteUser;
+  const setRole = setUserRole;
   const qc = useQueryClient();
 
   const usersQ = useQuery({

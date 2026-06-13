@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+
 import { useMemo, useState } from "react";
 import { Search, Trash2, Inbox, Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -10,19 +10,7 @@ import { IngestDialog } from "@/components/IngestDialog";
 import { useComments, deleteCommentsByIds } from "@/lib/data";
 import type { Platform } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/comments")({
-  head: () => ({
-    meta: [
-      { title: "Comments — ModGuard" },
-      { name: "description", content: "Browse, search, and bulk-moderate every comment captured by ModGuard across Twitter, Facebook, and Instagram." },
-      { property: "og:title", content: "Comments — ModGuard" },
-      { property: "og:description", content: "Browse and bulk-moderate every comment captured across your connected channels." },
-      { property: "og:url", content: "/comments" },
-    ],
-    links: [{ rel: "canonical", href: "/comments" }],
-  }),
-  component: CommentsPage,
-});
+export default CommentsPage;
 
 type Tab = "all" | Platform;
 type SortKey = "latest" | "oldest" | "toxic";

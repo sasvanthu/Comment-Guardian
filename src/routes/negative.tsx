@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+
 import { useMemo, useState } from "react";
 import { Trash2, Download, AlertOctagon, Filter, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
@@ -8,19 +8,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { useComments, deleteCommentsByIds } from "@/lib/data";
 import type { Category, Platform } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/negative")({
-  head: () => ({
-    meta: [
-      { title: "Negative Comments — ModGuard" },
-      { name: "description", content: "Filter, review, and act on negative or toxic comments with category and toxicity-threshold controls powered by ModGuard AI." },
-      { property: "og:title", content: "Negative Comments — ModGuard" },
-      { property: "og:description", content: "Filter and act on negative or toxic comments with AI-powered scoring." },
-      { property: "og:url", content: "/negative" },
-    ],
-    links: [{ rel: "canonical", href: "/negative" }],
-  }),
-  component: NegativePage,
-});
+export default NegativePage;
 
 const CATEGORIES: Category[] = ["toxic", "cyberbullying", "spam"];
 

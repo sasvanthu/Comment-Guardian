@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+
 import { useEffect, useState } from "react";
 import { Save, Languages, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
@@ -9,19 +9,7 @@ import {
   SUPPORTED_TARGET_LANGUAGES, type Preferences,
 } from "@/lib/storage";
 
-export const Route = createFileRoute("/settings")({
-  head: () => ({
-    meta: [
-      { title: "Settings — ModGuard" },
-      { name: "description", content: "Manage ModGuard preferences. Platform API credentials are configured server-side for security." },
-      { property: "og:title", content: "Settings — ModGuard" },
-      { property: "og:description", content: "Manage ModGuard preferences. Credentials are configured server-side." },
-      { property: "og:url", content: "/settings" },
-    ],
-    links: [{ rel: "canonical", href: "/settings" }],
-  }),
-  component: SettingsPage,
-});
+export default SettingsPage;
 
 function SettingsPage() {
   const [prefs, setPrefs] = useState<Preferences>({ defaultTargetLanguage: "English" });

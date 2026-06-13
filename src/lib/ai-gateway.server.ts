@@ -1,16 +1,15 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 
 /**
- * Server-only Lovable AI Gateway provider.
- * Reads LOVABLE_API_KEY from env inside a server function handler.
+ * Server-only AI Gateway provider.
+ * Reads AI_API_KEY from env inside a server function handler.
  */
-export function createLovableAiGatewayProvider(lovableApiKey: string) {
+export function createAiGatewayProvider(apiKey: string) {
   return createOpenAICompatible({
-    name: "lovable",
-    baseURL: "https://ai.gateway.lovable.dev/v1",
+    name: "ai-gateway",
+    baseURL: process.env.AI_BASE_URL || "https://api.openai.com/v1",
     headers: {
-      "Lovable-API-Key": lovableApiKey,
-      "X-Lovable-AIG-SDK": "vercel-ai-sdk",
+      Authorization: `Bearer ${apiKey}`,
     },
   });
 }

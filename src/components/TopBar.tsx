@@ -4,7 +4,7 @@
  * Purely presentational — wired to existing data hooks; no business logic changes.
  */
 import { useMemo, useRef, useState, useEffect } from "react";
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Search, Bell, ChevronDown, Activity, ShieldAlert, Check } from "lucide-react";
 import { useActivityLogs, useComments } from "@/lib/data";
 import { useAuth } from "@/hooks/use-auth";
@@ -18,7 +18,7 @@ const WORKSPACES = [
 
 export function TopBar() {
   const navigate = useNavigate();
-  const { location } = useRouterState();
+  const location = useLocation();
   const { user, isAdmin } = useAuth();
   const { comments } = useComments();
   const { logs } = useActivityLogs(20);
@@ -129,7 +129,7 @@ export function TopBar() {
             {results.map((r) => (
               <button
                 key={r.id}
-                onMouseDown={() => navigate({ to: "/comments" })}
+                onMouseDown={() => navigate("/comments")}
                 className="block w-full px-3 py-1.5 text-left text-[12px] hover:bg-secondary"
               >
                 <span className="font-medium text-foreground">{r.author}</span>

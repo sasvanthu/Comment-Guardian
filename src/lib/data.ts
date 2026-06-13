@@ -1,5 +1,5 @@
 /**
- * Central data layer wiring the portal to Lovable Cloud (Supabase).
+ * Central data layer wiring the portal to Supabase.
  * All reads are RLS-scoped to the authenticated user (admins see all rows).
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";

@@ -1,23 +1,24 @@
 import { useEffect, type ReactNode } from "react";
-import { useRouter, useRouterState } from "@tanstack/react-router";
+import { useNavigate, useLocation } from "react-router-dom";
+
 import { useAuth } from "@/hooks/use-auth";
 
 const PUBLIC_PATHS = new Set(["/auth"]);
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
-  const router = useRouter();
-  const { location } = useRouterState();
+  const navigate = useNavigate();
+  const location = useLocation();
   const isPublic = PUBLIC_PATHS.has(location.pathname);
 
   useEffect(() => {
     if (loading) return;
     if (!user && !isPublic) {
-      router.navigate({ to: "/auth", replace: true });
+      navigate("/auth", { replace: true });
     } else if (user && isPublic) {
-      router.navigate({ to: "/", replace: true });
+      navigate("/", { replace: true });
     }
-  }, [user, loading, isPublic, router]);
+  }, [user, loading, isPublic, navigate]);
 
   if (loading) {
     return (

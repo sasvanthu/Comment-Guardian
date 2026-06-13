@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+
 import { useMemo, useState } from "react";
 import { Download, AlertOctagon, ThumbsUp, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
@@ -9,19 +9,7 @@ import { buildDailySeries, type Platform } from "@/lib/mock-data";
 import { useComments } from "@/lib/data";
 import { AuditLogPanel } from "@/components/AuditLogPanel";
 
-export const Route = createFileRoute("/reports")({
-  head: () => ({
-    meta: [
-      { title: "Reports — ModGuard" },
-      { name: "description", content: "Visualize comment trends, sentiment breakdowns, and moderation outcomes with downloadable charts across every connected platform." },
-      { property: "og:title", content: "Reports — ModGuard" },
-      { property: "og:description", content: "Visualize comment trends, sentiment, and moderation outcomes." },
-      { property: "og:url", content: "/reports" },
-    ],
-    links: [{ rel: "canonical", href: "/reports" }],
-  }),
-  component: ReportsPage,
-});
+export default ReportsPage;
 
 function ReportsPage() {
   const { comments } = useComments();

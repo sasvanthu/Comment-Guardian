@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { useMemo, useState } from "react";
 import {
   MessageSquare, AlertOctagon, ThumbsUp, Activity, RefreshCw, Trash2,
@@ -24,19 +24,7 @@ import { IngestionStream } from "@/components/IngestionStream";
 import { AuditLogPanel } from "@/components/AuditLogPanel";
 
 
-export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Dashboard — ModGuard" },
-      { name: "description", content: "Monitor moderation activity, comment volume, and toxicity trends across Twitter, Facebook, and Instagram in one ModGuard dashboard." },
-      { property: "og:title", content: "Dashboard — ModGuard" },
-      { property: "og:description", content: "Live AI moderation across your connected social channels." },
-      { property: "og:url", content: "/" },
-    ],
-    links: [{ rel: "canonical", href: "/" }],
-  }),
-  component: Dashboard,
-});
+export default Dashboard;
 
 function Dashboard() {
   const { rows: dbRows, comments, allComments, loading, reload } = useComments();

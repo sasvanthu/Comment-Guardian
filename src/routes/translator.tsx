@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
+
+
 import { useEffect, useState } from "react";
 import { ArrowRightLeft, Copy, Languages, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -9,22 +9,10 @@ import { loadPrefs, SUPPORTED_TARGET_LANGUAGES } from "@/lib/storage";
 import { saveResearch } from "@/lib/data";
 
 
-export const Route = createFileRoute("/translator")({
-  head: () => ({
-    meta: [
-      { title: "AI Translator — ModGuard" },
-      { name: "description", content: "Translate comments and any text across 100+ languages with Lovable AI for fast, accurate cross-language moderation." },
-      { property: "og:title", content: "AI Translator — ModGuard" },
-      { property: "og:description", content: "Translate comments and text across 100+ languages for fast cross-language moderation." },
-      { property: "og:url", content: "/translator" },
-    ],
-    links: [{ rel: "canonical", href: "/translator" }],
-  }),
-  component: TranslatorPage,
-});
+export default TranslatorPage;
 
 function TranslatorPage() {
-  const translate = useServerFn(translateText);
+  const translate = translateText;
   const [text, setText] = useState("");
   const [target, setTarget] = useState<string>("English");
   const [loading, setLoading] = useState(false);
@@ -73,7 +61,7 @@ function TranslatorPage() {
           <Languages className="h-7 w-7 text-primary" /> AI Translator
         </h1>
         <p className="text-sm text-muted-foreground">
-          Auto-detect any language and translate with Lovable AI. Great for moderating comments in unfamiliar languages.
+          Auto-detect any language and translate with AI. Great for moderating comments in unfamiliar languages.
         </p>
       </header>
 

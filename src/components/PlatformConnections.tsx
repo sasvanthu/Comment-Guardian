@@ -6,7 +6,7 @@
  * through the syncPlatform / syncAllPlatforms server functions.
  */
 import { useEffect, useMemo, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
+
 import { Twitter, Facebook, Instagram, RefreshCw, AlertCircle, Clock, CheckCircle2, Loader2, Plug, PlugZap, Unplug } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,11 +65,11 @@ function StatusPill({ status }: { status: ConnectionStatus }) {
 export function PlatformConnections() {
   const [rows, setRows] = useState<ConnRow[]>([]);
   const [busy, setBusy] = useState<Record<string, boolean>>({});
-  const sync = useServerFn(syncPlatform);
-  const syncAll = useServerFn(syncAllPlatforms);
-  const igTest = useServerFn(testInstagramConnection);
-  const igSync = useServerFn(syncInstagramNow);
-  const igDisconnect = useServerFn(disconnectInstagram);
+  const sync = syncPlatform;
+  const syncAll = syncAllPlatforms;
+  const igTest = testInstagramConnection;
+  const igSync = syncInstagramNow;
+  const igDisconnect = disconnectInstagram;
 
   useEffect(() => {
     let alive = true;

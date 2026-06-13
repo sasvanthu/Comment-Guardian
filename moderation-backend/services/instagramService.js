@@ -4,7 +4,7 @@
  */
 const axios = require('axios');
 
-const BASE = 'https://graph.facebook.com/v20.0';
+const BASE = 'https://graph.instagram.com/v20.0';
 
 function token() {
   const t = process.env.INSTAGRAM_ACCESS_TOKEN;
@@ -55,7 +55,13 @@ async function fetchComments() {
         params: { fields: 'id,username,text,timestamp', limit: 50, access_token },
         timeout: 15000,
       });
-      (data.data || []).forEach((c) => all.push(normalize(c, m.id)));
+      
+      const commentsForMedia = data.data || [];
+      if (commentsForMedia.length === 0) {
+        console.log(`[instagram] Media ${m.id} returned 0 comments. Note: If your Meta App is in Development Mode, the API only returns comments made by App Testers.`);
+      }
+      
+      commentsForMedia.forEach((c) => all.push(normalize(c, m.id)));
     } catch (e) {
       console.warn('[instagram] failed to fetch comments for media', m.id, e.message);
     }

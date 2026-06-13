@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -29,7 +29,7 @@ const baseLinks = [
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [status, setStatus] = useState({ twitter: false, facebook: false, instagram: false });
-  const { location } = useRouterState();
+  const location = useLocation();
   const { user, isAdmin, signOut } = useAuth();
   const links = isAdmin
     ? [...baseLinks, { to: "/admin" as const, label: "Admin", icon: Users }]

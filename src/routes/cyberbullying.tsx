@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+
 import { useEffect, useMemo, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -17,19 +17,7 @@ import {
 } from "@/lib/data";
 import { buildOffenderProfiles, OffenderProfileCard } from "@/components/OffenderProfile";
 
-export const Route = createFileRoute("/cyberbullying")({
-  head: () => ({
-    meta: [
-      { title: "Cyberbullying Management — ModGuard" },
-      { name: "description", content: "Detect, review, and act on cyberbullying with AI confidence scoring, signal breakdowns, and configurable automation rules." },
-      { property: "og:title", content: "Cyberbullying Management — ModGuard" },
-      { property: "og:description", content: "Detect and act on cyberbullying with AI confidence scoring and automation rules." },
-      { property: "og:url", content: "/cyberbullying" },
-    ],
-    links: [{ rel: "canonical", href: "/cyberbullying" }],
-  }),
-  component: CyberbullyingPage,
-});
+export default CyberbullyingPage;
 
 // ----- Detection types -----
 const BULLY_CATS: Category[] = ["cyberbullying", "harassment", "threats", "hate"];

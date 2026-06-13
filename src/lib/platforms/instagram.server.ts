@@ -5,7 +5,7 @@
  */
 import type { PlatformId, SyncResult, SyncState, UnifiedComment } from "./types";
 
-const BASE = "https://graph.facebook.com/v20.0";
+const BASE = "https://graph.instagram.com/v20.0";
 
 export async function fetchInstagramComments(
   state: SyncState = {},

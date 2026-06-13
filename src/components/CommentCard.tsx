@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Trash2, Sparkles, ExternalLink, Languages, ShieldAlert, Ban, Loader2, Brain, ShieldCheck } from "lucide-react";
-import { useServerFn } from "@tanstack/react-start";
+
 import type { Comment, Category, Decision } from "@/lib/mock-data";
 import { PlatformBadge } from "./PlatformBadge";
 import { SentimentBadge } from "./SentimentBadge";
@@ -43,9 +43,9 @@ const decisionColor: Record<Decision, string> = {
 export function CommentCard({
   c, selected, onSelectChange, onDelete, onBlock,
 }: { c: Comment; selected: boolean; onSelectChange: (v: boolean) => void; onDelete: () => void; onBlock?: () => void }) {
-  const translate = useServerFn(translateText);
-  const analyze = useServerFn(analyzeToxic);
-  const spamCheck = useServerFn(detectSpamScam);
+  const translate = translateText;
+  const analyze = analyzeToxic;
+  const spamCheck = detectSpamScam;
   const [showTranslation, setShowTranslation] = useState(false);
   const [liveTranslation, setLiveTranslation] = useState<string | null>(null);
   const [translating, setTranslating] = useState(false);

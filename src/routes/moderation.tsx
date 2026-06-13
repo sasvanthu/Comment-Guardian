@@ -1,22 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+
 import { useState } from "react";
 import { Play, Save, Twitter, Facebook, Instagram } from "lucide-react";
 import { toast } from "sonner";
 import { Layout } from "@/components/Layout";
 
-export const Route = createFileRoute("/moderation")({
-  head: () => ({
-    meta: [
-      { title: "Auto Moderation — ModGuard" },
-      { name: "description", content: "Configure sensitivity, schedules, keyword blacklists, and per-platform automation rules for hands-off comment moderation." },
-      { property: "og:title", content: "Auto Moderation — ModGuard" },
-      { property: "og:description", content: "Configure automation rules, sensitivity, and schedules for hands-off comment moderation." },
-      { property: "og:url", content: "/moderation" },
-    ],
-    links: [{ rel: "canonical", href: "/moderation" }],
-  }),
-  component: ModerationPage,
-});
+export default ModerationPage;
 
 function ModerationPage() {
   const [enabled, setEnabled] = useState(true);

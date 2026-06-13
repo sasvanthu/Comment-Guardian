@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+
 import { useMemo, useState } from "react";
 import { Ban, Search, Download, Trash2, Plus, Loader2, AtSign, Hash } from "lucide-react";
 import { toast } from "sonner";
@@ -7,19 +7,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { formatDistanceToNow } from "date-fns";
 import { useBlacklist, addBlacklist, removeBlacklist } from "@/lib/data";
 
-export const Route = createFileRoute("/blacklist")({
-  head: () => ({
-    meta: [
-      { title: "Blacklist — ModGuard" },
-      { name: "description", content: "Manage blocked keywords and user handles. Anything on this list is filtered from your moderation queue automatically." },
-      { property: "og:title", content: "Blacklist — ModGuard" },
-      { property: "og:description", content: "Manage blocked keywords and user handles across your moderation queue." },
-      { property: "og:url", content: "/blacklist" },
-    ],
-    links: [{ rel: "canonical", href: "/blacklist" }],
-  }),
-  component: BlacklistPage,
-});
+export default BlacklistPage;
 
 function BlacklistPage() {
   const { rows, loading, reload } = useBlacklist();

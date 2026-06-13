@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+
 import { useMemo, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
+
 import { Brain, Sparkles, Loader2, Quote, ShieldAlert, UserSearch } from "lucide-react";
 import { toast } from "sonner";
 import { Layout } from "@/components/Layout";
@@ -11,19 +11,7 @@ import { researchUser } from "@/lib/ai-research.functions";
 import { useComments, saveResearch } from "@/lib/data";
 
 
-export const Route = createFileRoute("/research")({
-  head: () => ({
-    meta: [
-      { title: "AI Research — ModGuard" },
-      { name: "description", content: "Use AI to research users, surface behavioral patterns, risk scores, and recommended moderator actions across their full comment history." },
-      { property: "og:title", content: "AI Research — ModGuard" },
-      { property: "og:description", content: "AI-powered user behavior research, risk scoring, and moderator recommendations." },
-      { property: "og:url", content: "/research" },
-    ],
-    links: [{ rel: "canonical", href: "/research" }],
-  }),
-  component: ResearchPage,
-});
+export default ResearchPage;
 
 type ResearchResult = Awaited<ReturnType<typeof researchUser>>;
 
@@ -35,7 +23,7 @@ const riskTone: Record<ResearchResult["riskLevel"], string> = {
 };
 
 function ResearchPage() {
-  const run = useServerFn(researchUser);
+  const run = researchUser;
   const { comments } = useComments();
 
   const [query, setQuery] = useState("");

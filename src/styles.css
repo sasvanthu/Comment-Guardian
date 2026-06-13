@@ -43,7 +43,8 @@
 }
 
 :root {
-  --radius: 0.375rem; /* 6px max */
+  --radius: 0.375rem;
+  /* 6px max */
 
   /* Enterprise slate base — Linear / Stripe / Vercel inspired */
   --background: #0B0F17;
@@ -76,9 +77,9 @@
   /* Semantic signal palette */
   --success: #22C55E;
   --warning: #F59E0B;
-  --danger:  #EF4444;
-  --info:    #3B82F6;
-  --ai:      #7C3AED;
+  --danger: #EF4444;
+  --info: #3B82F6;
+  --ai: #7C3AED;
 
   /* Legacy aliases — kept so existing components keep their semantic meaning */
   --toxic: #EF4444;
@@ -110,9 +111,12 @@
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
+  * {
+    border-color: var(--color-border);
+  }
 
-  html, body {
+  html,
+  body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
@@ -122,33 +126,63 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  body { min-height: 100vh; background-image: none; }
+  body {
+    min-height: 100vh;
+    background-image: none;
+  }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-display);
     font-weight: 600;
     letter-spacing: -0.025em;
     line-height: 1.1;
   }
 
-  h1 { font-weight: 700; letter-spacing: -0.035em; }
+  h1 {
+    font-weight: 700;
+    letter-spacing: -0.035em;
+  }
 
-  code, kbd, pre, samp, .font-mono, .tabular-nums {
+  code,
+  kbd,
+  pre,
+  samp,
+  .font-mono,
+  .tabular-nums {
     font-family: var(--font-mono);
     font-feature-settings: "zero", "ss01";
   }
 
-  ::selection { background: color-mix(in oklab, var(--primary) 35%, transparent); color: var(--foreground); }
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 35%, transparent);
+    color: var(--foreground);
+  }
 
-  ::-webkit-scrollbar { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
   ::-webkit-scrollbar-thumb {
     background: oklch(0.3 0.008 250);
     border-radius: 6px;
     border: 2px solid transparent;
     background-clip: padding-box;
   }
-  ::-webkit-scrollbar-thumb:hover { background: oklch(0.38 0.008 250); background-clip: padding-box; }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.38 0.008 250);
+    background-clip: padding-box;
+  }
 
   /* Editorial micro-labels */
   .eyebrow {
@@ -188,23 +222,46 @@
   border-radius: var(--radius-md);
   transition: border-color 180ms ease, background-color 180ms ease;
 }
+
 @utility cyber-card-hover {
-  &:hover { border-color: color-mix(in oklab, var(--primary) 45%, var(--border)); }
+  &:hover {
+    border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
+  }
 }
+
 @utility floating-card {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
 }
 
-@utility shadow-elegant { box-shadow: var(--shadow-elegant); }
-@utility shadow-neon { box-shadow: var(--shadow-neon); }
-@utility shadow-float { box-shadow: var(--shadow-float); }
+@utility shadow-elegant {
+  box-shadow: var(--shadow-elegant);
+}
 
-@utility text-neon { color: var(--primary); }
-@utility text-gradient-aurora { color: var(--foreground); }
-@utility text-gradient-cyber { color: var(--foreground); }
-@utility border-neon { border: 1px solid color-mix(in oklab, var(--primary) 55%, transparent); }
+@utility shadow-neon {
+  box-shadow: var(--shadow-neon);
+}
+
+@utility shadow-float {
+  box-shadow: var(--shadow-float);
+}
+
+@utility text-neon {
+  color: var(--primary);
+}
+
+@utility text-gradient-aurora {
+  color: var(--foreground);
+}
+
+@utility text-gradient-cyber {
+  color: var(--foreground);
+}
+
+@utility border-neon {
+  border: 1px solid color-mix(in oklab, var(--primary) 55%, transparent);
+}
 
 @utility neon-divider {
   height: 1px;
@@ -212,10 +269,18 @@
 }
 
 /* Decorative blobs neutralized */
-@utility glow-blob { display: none !important; }
+@utility glow-blob {
+  display: none !important;
+}
 
-@utility animate-neon-pulse { animation: none; }
-@utility animate-float-soft { animation: none; }
+@utility animate-neon-pulse {
+  animation: none;
+}
+
+@utility animate-float-soft {
+  animation: none;
+}
+
 @utility animate-shimmer {
   background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--primary) 14%, transparent), transparent);
   background-size: 200% 100%;
@@ -223,8 +288,13 @@
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 /* Active-state razor accent (2px) */
@@ -237,6 +307,7 @@
 /* Inputs: crisp neutral border on focus — no thick ring, no glow.
    100ms border-color transition; native ring suppressed. */
 @layer base {
+
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
   textarea,
   select {
@@ -245,6 +316,7 @@
     border-radius: 6px;
     transition: border-color 100ms linear, background-color 100ms linear;
   }
+
   input:focus,
   input:focus-visible,
   textarea:focus,
@@ -253,14 +325,20 @@
   select:focus-visible {
     outline: none !important;
     box-shadow: none !important;
-    border-color: #F8FAFC; /* high-contrast neutral */
+    border-color: #F8FAFC;
+    /* high-contrast neutral */
   }
 }
 
 /* Focus-isolation: when a form group is focused-within, dim its siblings 15%. */
 @utility focus-isolation-group {
-  &:has(:focus-visible) > * { transition: opacity 120ms linear; }
-  &:has(:focus-visible) > *:not(:focus-within) { opacity: 0.85; }
+  &:has(:focus-visible)>* {
+    transition: opacity 120ms linear;
+  }
+
+  &:has(:focus-visible)>*:not(:focus-within) {
+    opacity: 0.85;
+  }
 }
 
 /* Table / row precision hover — 150ms exact, flat tone offset only. */
@@ -269,6 +347,7 @@
     border-color: var(--border);
     transition: background-color 150ms linear, border-color 150ms linear;
   }
+
   tbody tr:hover {
     background-color: #161F2D;
     border-color: #2E3B52;
@@ -278,6 +357,7 @@
 /* Row utility for non-table interactive list items. */
 @utility row-hover {
   transition: background-color 150ms linear, border-color 150ms linear;
+
   &:hover {
     background-color: #161F2D;
     border-color: #2E3B52;

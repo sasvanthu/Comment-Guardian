@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+
 import { useEffect, useMemo, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -20,19 +20,7 @@ import {
 } from "@/lib/data";
 import { runModerationAction, type ModeratorAction } from "@/lib/moderation-actions";
 
-export const Route = createFileRoute("/review")({
-  head: () => ({
-    meta: [
-      { title: "Review Queue — ModGuard" },
-      { name: "description", content: "Centralized AI moderation review queue: triage flagged comments from Twitter, Facebook, and Instagram with explainable AI signals, bulk actions, and moderator feedback loop." },
-      { property: "og:title", content: "Review Queue — ModGuard" },
-      { property: "og:description", content: "Triage AI-flagged comments with explainability and bulk moderation actions." },
-      { property: "og:url", content: "/review" },
-    ],
-    links: [{ rel: "canonical", href: "/review" }],
-  }),
-  component: ReviewQueuePage,
-});
+export default ReviewQueuePage;
 
 /* ---------- Domain helpers ---------- */
 

@@ -18,6 +18,7 @@ const instagramRoutes = require('./routes/instagram');
 const aiRoutes = require('./routes/ai');
 const dashboardRoutes = require('./routes/dashboard');
 const moderationRoutes = require('./routes/moderation');
+const rpcRoutes = require('./routes/rpc');
 
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 
@@ -74,6 +75,7 @@ app.use('/api/instagram', instagramRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/moderation', moderationRoutes);
+app.use('/api/rpc', rpcRoutes);
 
 // --- 404 + error handler (must be last) ---
 app.use(notFound);

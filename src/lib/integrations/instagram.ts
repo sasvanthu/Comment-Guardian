@@ -6,31 +6,20 @@
  * (Graph API calls, comment ingestion, audit + health logging) lives
  * server-side; this file only marshals input/output.
  */
-import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-type AuthCtx = { supabase: { from: (t: string) => any }; userId: string };
+import axios from "axios";
 
-export const testInstagramConnection = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async () => {
-    const mod = await import("@/server/integrations/instagram");
-    return mod.testInstagramConnection();
-  });
+export async function testInstagramConnection() {
+  const res = await axios.post("/api/rpc", { functionName: "testInstagramConnection", payload: {} });
+  return res.data;
+}
 
-export const syncInstagramNow = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { supabase, userId } = context as unknown as AuthCtx;
-    const mod = await import("@/server/integrations/instagram");
-    return mod.syncInstagramForUser(supabase, userId);
-  });
+export async function syncInstagramNow() {
+  const res = await axios.post("/api/rpc", { functionName: "syncInstagramNow", payload: {} });
+  return res.data;
+}
 
-export const disconnectInstagram = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { supabase, userId } = context as unknown as AuthCtx;
-    const mod = await import("@/server/integrations/instagram");
-    await mod.disconnectInstagramForUser(supabase, userId);
-    return { ok: true };
-  });
+export async function disconnectInstagram() {
+  const res = await axios.post("/api/rpc", { functionName: "disconnectInstagram", payload: {} });
+  return res.data;
+}

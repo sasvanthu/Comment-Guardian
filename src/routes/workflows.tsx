@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+
 import { useEffect, useRef, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
+import { useMutation, useQuery, useQueryClient } from "@/hooks/mock-query";
+
 import { toast } from "sonner";
 import { Plus, Trash2, Power, PowerOff, Database, Workflow } from "lucide-react";
 import { Layout } from "@/components/Layout";
@@ -17,15 +17,7 @@ import {
   deleteWorkflowRule, listWorkflowExecutions, seedSampleData,
 } from "@/lib/workflows.functions";
 
-export const Route = createFileRoute("/workflows")({
-  head: () => ({
-    meta: [
-      { title: "Workflow Automation — ModGuard" },
-      { name: "description", content: "Build IF/THEN rules that auto-act on AI-analyzed comments." },
-    ],
-  }),
-  component: WorkflowsPage,
-});
+export default WorkflowsPage;
 
 type Condition = { field: string; op: string; value: string | number };
 type Action = { type: string; params?: Record<string, unknown> };
@@ -54,12 +46,12 @@ function blankRule(): Omit<Rule, "id" | "run_count" | "last_run_at"> {
 
 function WorkflowsPage() {
   const qc = useQueryClient();
-  const list = useServerFn(listWorkflowRules);
-  const upsert = useServerFn(upsertWorkflowRule);
-  const toggle = useServerFn(toggleWorkflowRule);
-  const del = useServerFn(deleteWorkflowRule);
-  const execs = useServerFn(listWorkflowExecutions);
-  const seed = useServerFn(seedSampleData);
+  const list = listWorkflowRules;
+  const upsert = upsertWorkflowRule;
+  const toggle = toggleWorkflowRule;
+  const del = deleteWorkflowRule;
+  const execs = listWorkflowExecutions;
+  const seed = seedSampleData;
 
   const rulesQuery = useQuery({ queryKey: ["wf-rules"], queryFn: () => list() });
   const execsQuery = useQuery({ queryKey: ["wf-execs"], queryFn: () => execs() });
