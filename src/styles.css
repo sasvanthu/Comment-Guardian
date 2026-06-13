@@ -1,0 +1,285 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 6px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-toxic: var(--toxic);
+  --color-positive: var(--positive);
+  --color-neutral-warn: var(--neutral-warn);
+  --color-twitter: var(--twitter);
+  --color-facebook: var(--facebook);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --radius: 0.375rem; /* 6px max */
+
+  /* Enterprise slate base — Linear / Stripe / Vercel inspired */
+  --background: #0B0F17;
+  --foreground: #F8FAFC;
+  --card: #111827;
+  --card-foreground: #F8FAFC;
+  --popover: #111827;
+  --popover-foreground: #F8FAFC;
+
+  /* Accent reserved as a semantic signal (AI / active nav / primary CTA) */
+  --primary: #7C3AED;
+  --primary-foreground: #F8FAFC;
+  --primary-hover: #8B5CF6;
+  --primary-active: #6D28D9;
+
+  --secondary: #161F2D;
+  --secondary-foreground: #F8FAFC;
+  --muted: #161F2D;
+  --muted-foreground: #94A3B8;
+  --accent: #161F2D;
+  --accent-foreground: #F8FAFC;
+
+  --destructive: #EF4444;
+  --destructive-foreground: #F8FAFC;
+
+  --border: #243044;
+  --input: #161F2D;
+  --ring: #7C3AED;
+
+  /* Semantic signal palette */
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --danger:  #EF4444;
+  --info:    #3B82F6;
+  --ai:      #7C3AED;
+
+  /* Legacy aliases — kept so existing components keep their semantic meaning */
+  --toxic: #EF4444;
+  --positive: #22C55E;
+  --neutral-warn: #F59E0B;
+  --twitter: #3B82F6;
+  --facebook: #6366F1;
+
+  --sidebar: #0B0F17;
+  --sidebar-foreground: #94A3B8;
+  --sidebar-border: #243044;
+
+  /* Restrained shadows — borders carry the structure */
+  --shadow-elegant: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-neon: 0 0 0 1px color-mix(in oklab, var(--primary) 30%, transparent);
+  --shadow-float: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 4px 12px rgb(0 0 0 / 0.35);
+
+  --gradient-primary: linear-gradient(180deg, #8B5CF6, #6D28D9);
+  --gradient-aurora: linear-gradient(90deg, #94A3B8, #7C3AED);
+}
+
+@theme inline {
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --color-ai: var(--ai);
+}
+
+@layer base {
+  * { border-color: var(--color-border); }
+
+  html, body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01", "ss03";
+    letter-spacing: -0.005em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body { min-height: 100vh; background-image: none; }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+  }
+
+  h1 { font-weight: 700; letter-spacing: -0.035em; }
+
+  code, kbd, pre, samp, .font-mono, .tabular-nums {
+    font-family: var(--font-mono);
+    font-feature-settings: "zero", "ss01";
+  }
+
+  ::selection { background: color-mix(in oklab, var(--primary) 35%, transparent); color: var(--foreground); }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.3 0.008 250);
+    border-radius: 6px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: oklch(0.38 0.008 250); background-clip: padding-box; }
+
+  /* Editorial micro-labels */
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+}
+
+/* Bordered surface — replaces glass/floating */
+@utility surface {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+@utility surface-muted {
+  background: color-mix(in oklab, var(--card) 60%, var(--background));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+/* Back-compat utility names mapped to the restrained look */
+@utility glass-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+}
+
+@utility cyber-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+@utility cyber-card-hover {
+  &:hover { border-color: color-mix(in oklab, var(--primary) 45%, var(--border)); }
+}
+@utility floating-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+@utility shadow-elegant { box-shadow: var(--shadow-elegant); }
+@utility shadow-neon { box-shadow: var(--shadow-neon); }
+@utility shadow-float { box-shadow: var(--shadow-float); }
+
+@utility text-neon { color: var(--primary); }
+@utility text-gradient-aurora { color: var(--foreground); }
+@utility text-gradient-cyber { color: var(--foreground); }
+@utility border-neon { border: 1px solid color-mix(in oklab, var(--primary) 55%, transparent); }
+
+@utility neon-divider {
+  height: 1px;
+  background: var(--border);
+}
+
+/* Decorative blobs neutralized */
+@utility glow-blob { display: none !important; }
+
+@utility animate-neon-pulse { animation: none; }
+@utility animate-float-soft { animation: none; }
+@utility animate-shimmer {
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--primary) 14%, transparent), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2.4s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Active-state razor accent (2px) */
+@utility rail-active {
+  box-shadow: inset 2px 0 0 var(--primary);
+}
+
+/* === Desktop-grade interaction mechanics ============================== */
+
+/* Inputs: crisp neutral border on focus — no thick ring, no glow.
+   100ms border-color transition; native ring suppressed. */
+@layer base {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select {
+    background-color: var(--input);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    transition: border-color 100ms linear, background-color 100ms linear;
+  }
+  input:focus,
+  input:focus-visible,
+  textarea:focus,
+  textarea:focus-visible,
+  select:focus,
+  select:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: #F8FAFC; /* high-contrast neutral */
+  }
+}
+
+/* Focus-isolation: when a form group is focused-within, dim its siblings 15%. */
+@utility focus-isolation-group {
+  &:has(:focus-visible) > * { transition: opacity 120ms linear; }
+  &:has(:focus-visible) > *:not(:focus-within) { opacity: 0.85; }
+}
+
+/* Table / row precision hover — 150ms exact, flat tone offset only. */
+@layer base {
+  tbody tr {
+    border-color: var(--border);
+    transition: background-color 150ms linear, border-color 150ms linear;
+  }
+  tbody tr:hover {
+    background-color: #161F2D;
+    border-color: #2E3B52;
+  }
+}
+
+/* Row utility for non-table interactive list items. */
+@utility row-hover {
+  transition: background-color 150ms linear, border-color 150ms linear;
+  &:hover {
+    background-color: #161F2D;
+    border-color: #2E3B52;
+  }
+}
