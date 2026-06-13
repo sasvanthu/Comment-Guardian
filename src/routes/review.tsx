@@ -11,6 +11,7 @@ import { Layout } from "@/components/Layout";
 import { PlatformBadge } from "@/components/PlatformBadge";
 import { SentimentBadge } from "@/components/SentimentBadge";
 import { EmptyState } from "@/components/EmptyState";
+import { supabase } from "@/integrations/supabase/client";
 
 import type { Platform } from "@/lib/mock-data";
 import {
@@ -222,8 +223,34 @@ function ReviewQueuePage() {
   const seed = async () => {
     setSeeding(true);
     try {
-      await seedSampleFlaggedComments();
-      toast.success("Sample flagged comments added");
+      const { data: authData } = await supabase.auth.getUser();
+      const uid = authData?.user?.id;
+      if (!uid) throw new Error("You must be logged in to seed data");
+
+      const inserted = await seedSampleFlaggedComments();
+      if (!inserted || !inserted.length) throw new Error("No comments seeded locally");
+
+      toast.info("Analyzing with DeepSeek...");
+
+      const res = await fetch("http://localhost:5000/api/rpc/seedSampleData", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ comments: inserted })
+      });
+      if (!res.ok) throw new Error("Failed to run AI analysis");
+      
+      const { analyses } = await res.json();
+      
+      for (const a of analyses) {
+        if (!a.error && a.id) {
+          await supabase.from("comments").update({
+            sentiment: a.sentiment,
+            category: a.categories && a.categories.length ? (a.categories[0] === 'safe' ? 'neutral' : a.categories[0]) : "neutral"
+          }).eq("id", a.id);
+        }
+      }
+
+      toast.success(`Seeded and analyzed ${inserted.length} comments!`);
       await reload();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to seed");

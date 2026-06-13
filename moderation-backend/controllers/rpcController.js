@@ -193,7 +193,17 @@ exports.listPlatformConnections = async (req, res) => res.json([]);
 exports.disconnectPlatform = async (req, res) => res.json({ ok: true });
 exports.syncPlatform = async (req, res) => res.json({ status: "success", analyzed: 0, toxic: 0 });
 exports.syncAllPlatforms = async (req, res) => res.json({ status: "success", analyzed: 0, toxic: 0 });
-exports.seedSampleData = async (req, res) => res.json({ count: 0 });
+exports.seedSampleData = async (req, res, next) => {
+  try {
+    const { comments } = req.body;
+    if (!comments || !Array.isArray(comments)) {
+      return res.status(400).json({ error: "No comments provided" });
+    }
+    const aiService = require('../services/aiService');
+    const analyses = await aiService.analyzeBulk(comments.map(c => ({ id: c.id, text: c.text })));
+    res.json({ analyses });
+  } catch (e) { next(e); }
+};
 
 const instagramService = require('../services/instagramService');
 
