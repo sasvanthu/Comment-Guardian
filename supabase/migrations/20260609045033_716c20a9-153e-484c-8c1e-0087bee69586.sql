@@ -1,0 +1,1 @@
+ALTER TABLE public.platform_connections ADD COLUMN IF NOT EXISTS sync_cursor text;

@@ -1,0 +1,17 @@
+# ModGuard
+
+> AI-powered social media comment moderation for Twitter, Facebook, and Instagram.
+
+ModGuard helps teams detect, review, and act on toxic comments, cyberbullying, and harassment using configurable AI confidence scoring and automation rules.
+
+## Pages
+
+- [Dashboard](/): Overview of moderation activity and comment trends.
+- [Comments](/comments): Browse and bulk-moderate all captured comments.
+- [Negative Comments](/negative): Filter and act on toxic comments by category and threshold.
+- [Cyberbullying](/cyberbullying): Detect and manage harassment with AI confidence breakdowns.
+- [Auto Moderation](/moderation): Configure automation rules, sensitivity, and schedules.
+- [Blacklist](/blacklist): Review users blocked across platforms.
+- [Reports](/reports): Visualize comment trends and moderation outcomes.
+- [Translator](/translator): Translate comments across 100+ languages.
+- [Settings](/settings): Manage platform integration credentials.
