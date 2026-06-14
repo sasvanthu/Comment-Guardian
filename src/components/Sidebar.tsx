@@ -14,7 +14,7 @@ import { railTransition } from "@/lib/motion";
 const baseLinks = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/review", label: "Review Queue", icon: ClipboardCheck },
-  { to: "/comments", label: "Comments", icon: MessageSquare },
+  { to: "/comments", label: "Content Stream", icon: MessageSquare },
   { to: "/negative", label: "Negative", icon: AlertOctagon },
   { to: "/cyberbullying", label: "Cyberbullying", icon: ShieldAlert },
   { to: "/research", label: "AI Research", icon: Brain },
@@ -51,9 +51,9 @@ export function Sidebar() {
         }`}
       >
         {/* Brand */}
-        <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center border border-border bg-background">
-            <ShieldAlert className="h-4 w-4 text-primary" strokeWidth={2} />
+        <div className="flex h-14 items-center gap-2 px-4 hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors m-2 rounded-md">
+          <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[4px] bg-primary text-primary-foreground text-[10px] font-bold">
+            T
           </div>
           {!collapsed && (
             <div className="min-w-0">

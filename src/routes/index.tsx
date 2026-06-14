@@ -16,7 +16,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { IngestDialog } from "@/components/IngestDialog";
 import { AiSummaryWidget } from "@/components/AiSummaryWidget";
 import { PlatformHealthWidget } from "@/components/PlatformHealthWidget";
-import { buildDailySeries, buildLanguageDistribution } from "@/lib/mock-data";
+import { buildDailySeries, buildLanguageDistribution } from "@/lib/types";
 import { useComments, useBlacklist, useActivityLogs, deleteCommentsByIds } from "@/lib/data";
 import { formatDistanceToNow } from "date-fns";
 import { DataStagger, DataItem } from "@/components/motion/DataStagger";
@@ -89,7 +89,7 @@ function Dashboard() {
 
 
       <DataStagger className="grid grid-cols-2 gap-2 md:grid-cols-4 lg:grid-cols-7">
-        <DataItem><StatsCard label="Total" value={stats.total} icon={MessageSquare} hint="All channels" /></DataItem>
+        <DataItem><StatsCard label="Total Content Items" value={stats.total} icon={MessageSquare} hint="All channels" /></DataItem>
         <DataItem><StatsCard label="Positive" value={stats.positive} icon={ThumbsUp} tone="positive" /></DataItem>
         <DataItem><StatsCard label="Neutral" value={stats.neutral} icon={Activity} tone="neutral" /></DataItem>
         <DataItem><StatsCard label="Negative" value={stats.toxic} icon={AlertOctagon} tone="toxic" /></DataItem>

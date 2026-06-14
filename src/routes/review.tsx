@@ -13,7 +13,7 @@ import { SentimentBadge } from "@/components/SentimentBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { supabase } from "@/integrations/supabase/client";
 
-import type { Platform } from "@/lib/mock-data";
+import type { Platform } from "@/lib/types";
 import {
   useComments, useModeratorFeedback,
   addFeedback, seedSampleFlaggedComments,

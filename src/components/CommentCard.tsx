@@ -2,7 +2,7 @@ import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Trash2, Sparkles, ExternalLink, Languages, ShieldAlert, Ban, Loader2, Brain, ShieldCheck } from "lucide-react";
 
-import type { Comment, Category, Decision } from "@/lib/mock-data";
+import type { Comment, Category, Decision } from "@/lib/types";
 import { PlatformBadge } from "./PlatformBadge";
 import { SentimentBadge } from "./SentimentBadge";
 import { translateText } from "@/lib/translate.functions";

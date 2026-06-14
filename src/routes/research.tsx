@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Layout } from "@/components/Layout";
 import { PlatformBadge } from "@/components/PlatformBadge";
 import { EmptyState } from "@/components/EmptyState";
-import type { Comment } from "@/lib/mock-data";
+import type { Comment } from "@/lib/types";
 import { researchUser } from "@/lib/ai-research.functions";
 import { useComments, saveResearch } from "@/lib/data";
 

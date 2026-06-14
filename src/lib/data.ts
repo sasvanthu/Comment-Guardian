@@ -5,7 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import type { Comment, BlockedUser, ModerationLog, Category, Platform, Sentiment } from "@/lib/mock-data";
+import type { Comment, BlockedUser, ModerationLog, Category, Platform, Sentiment } from "@/lib/types";
 
 export type DbComment = Database["public"]["Tables"]["comments"]["Row"];
 export type DbBlacklist = Database["public"]["Tables"]["blacklist"]["Row"];

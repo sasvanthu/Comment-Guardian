@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Layout } from "@/components/Layout";
 import { StatsCard } from "@/components/StatsCard";
-import { buildDailySeries, type Platform } from "@/lib/mock-data";
+import { buildDailySeries, type Platform } from "@/lib/types";
 import { useComments } from "@/lib/data";
 import { AuditLogPanel } from "@/components/AuditLogPanel";
 

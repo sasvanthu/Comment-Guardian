@@ -8,7 +8,7 @@ import { CommentSkeleton } from "@/components/LoadingSkeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { IngestDialog } from "@/components/IngestDialog";
 import { useComments, deleteCommentsByIds } from "@/lib/data";
-import type { Platform } from "@/lib/mock-data";
+import type { Platform } from "@/lib/types";
 
 export default CommentsPage;
 

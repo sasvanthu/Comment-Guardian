@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Layout } from "@/components/Layout";
 import { PlatformBadge } from "@/components/PlatformBadge";
 import { StatsCard } from "@/components/StatsCard";
-import type { Comment, Category, Platform } from "@/lib/mock-data";
+import type { Comment, Category, Platform } from "@/lib/types";
 import {
   useComments, useBlacklist,
   setCommentsStatus, addBlacklist, removeBlacklist,

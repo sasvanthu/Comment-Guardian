@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Sparkles, AlertTriangle, ShieldAlert, Flame, Eye, Clock } from "lucide-react";
-import type { Comment } from "@/lib/mock-data";
+import type { Comment } from "@/lib/types";
 import type { DbComment } from "@/lib/data";
 
 function isToday(iso: string) {

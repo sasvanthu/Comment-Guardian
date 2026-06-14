@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Loader2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { insertComment } from "@/lib/data";
-import type { Platform } from "@/lib/mock-data";
+import type { Platform } from "@/lib/types";
 
 const SENTIMENTS = ["positive", "neutral", "negative"] as const;
 const CATEGORIES = ["positive", "neutral", "toxic", "spam", "cyberbullying"] as const;

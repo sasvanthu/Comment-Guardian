@@ -1,4 +1,4 @@
-import type { Sentiment } from "@/lib/mock-data";
+import type { Sentiment } from "@/lib/types";
 
 const map: Record<Sentiment, { label: string; cls: string }> = {
   toxic:    { label: "Toxic",    cls: "border-toxic/60 text-toxic" },

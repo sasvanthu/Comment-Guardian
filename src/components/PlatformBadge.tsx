@@ -1,5 +1,5 @@
 import { Twitter, Facebook, Instagram } from "lucide-react";
-import type { Platform } from "@/lib/mock-data";
+import type { Platform } from "@/lib/types";
 
 const tone: Record<Platform, string> = {
   twitter: "border-twitter/55 text-twitter",
