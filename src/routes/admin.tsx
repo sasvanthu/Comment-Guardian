@@ -1,6 +1,6 @@
 
 
-import { useQuery, useMutation, useQueryClient } from "@/hooks/mock-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Trash2, UserPlus, ShieldCheck, ShieldOff } from "lucide-react";
 import { toast } from "sonner";

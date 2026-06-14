@@ -1,6 +1,6 @@
 
 import { useEffect, useRef, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@/hooks/mock-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { toast } from "sonner";
 import { Plus, Trash2, Power, PowerOff, Database, Workflow } from "lucide-react";
@@ -14,7 +14,7 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   listWorkflowRules, upsertWorkflowRule, toggleWorkflowRule,
-  deleteWorkflowRule, listWorkflowExecutions, seedSampleData,
+  deleteWorkflowRule, listWorkflowExecutions,
 } from "@/lib/workflows.functions";
 
 export default WorkflowsPage;
@@ -51,7 +51,6 @@ function WorkflowsPage() {
   const toggle = toggleWorkflowRule;
   const del = deleteWorkflowRule;
   const execs = listWorkflowExecutions;
-  const seed = seedSampleData;
 
   const rulesQuery = useQuery({ queryKey: ["wf-rules"], queryFn: () => list() });
   const execsQuery = useQuery({ queryKey: ["wf-execs"], queryFn: () => execs() });
@@ -70,11 +69,6 @@ function WorkflowsPage() {
   const delMut = useMutation({
     mutationFn: (id: string) => del({ data: { id } }),
     onSuccess: () => { toast.success("Deleted"); qc.invalidateQueries({ queryKey: ["wf-rules"] }); },
-  });
-  const seedMut = useMutation({
-    mutationFn: () => seed({ data: { count: 1000 } }),
-    onSuccess: (r) => toast.success(`Seeded ${r.inserted} sample comments`),
-    onError: (e: Error) => toast.error(e.message),
   });
 
   const rules = (rulesQuery.data?.rules ?? []) as Rule[];
@@ -108,10 +102,6 @@ function WorkflowsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => seedMut.mutate()} disabled={seedMut.isPending}>
-            <Database className="mr-1.5 h-4 w-4" />
-            {seedMut.isPending ? "Seeding…" : "Seed 1k samples"}
-          </Button>
           <Button onClick={() => setEditing(blankRule())}>
             <Plus className="mr-1.5 h-4 w-4" /> New rule
           </Button>

@@ -21,8 +21,6 @@ router.get('/listPlatformConnections', c.listPlatformConnections);
 router.post('/disconnectPlatform', c.disconnectPlatform);
 router.post('/syncPlatform', c.syncPlatform);
 router.post('/syncAllPlatforms', c.syncAllPlatforms);
-router.post('/seedSampleData', c.seedSampleData);
-
 router.post('/testInstagramConnection', c.testInstagramConnection);
 router.post('/syncInstagramNow', c.syncInstagramNow);
 router.post('/disconnectInstagram', c.disconnectInstagram);

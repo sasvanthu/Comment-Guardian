@@ -40,3 +40,32 @@ exports.bulkDelete = async (req, res, next) => {
     next(e);
   }
 };
+
+exports.xApiIntegration = async (req, res, next) => {
+  try {
+    const apiUrl = process.env.X_API_URL || 'https://api.twitter.com/2';
+    const accessToken = process.env.X_ACCESS_TOKEN || process.env.TWITTER_BEARER_TOKEN;
+
+    if (!accessToken) {
+      return res.status(400).json({ error: 'Missing X (Twitter) access token in .env' });
+    }
+
+    const axios = require('axios');
+    const url = `${apiUrl}/users/me`;
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    res.json({
+      platform: 'twitter',
+      integration_status: 'success',
+      endpoint: url,
+      data: response.data
+    });
+  } catch (e) {
+    if (e.response && e.response.data) {
+      return res.status(e.response.status || 500).json({ platform: 'twitter', integration_status: 'error', data: e.response.data });
+    }
+    next(e);
+  }
+};

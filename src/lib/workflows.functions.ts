@@ -7,4 +7,3 @@ export const upsertWorkflowRule = async (data: any) => (await axios.post(`${API_
 export const toggleWorkflowRule = async (data: any) => (await axios.post(`${API_BASE}/toggleWorkflowRule`, data)).data;
 export const deleteWorkflowRule = async (data: any) => (await axios.post(`${API_BASE}/deleteWorkflowRule`, data)).data;
 export const listWorkflowExecutions = async () => (await axios.get(`${API_BASE}/listWorkflowExecutions`)).data;
-export const seedSampleData = async (data: any) => (await axios.post(`${API_BASE}/seedSampleData`, data)).data;

@@ -7,4 +7,7 @@ router.get('/comments', c.getComments);
 router.delete('/comments/:id', c.deleteComment);
 router.post('/comments/bulk-delete', c.bulkDelete);
 
+// New endpoint for raw Graph API integration
+router.get('/graph', c.graphApiIntegration);
+
 module.exports = router;

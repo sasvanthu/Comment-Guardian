@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Platform } from "@/lib/types";
 import {
   useComments, useModeratorFeedback,
-  addFeedback, seedSampleFlaggedComments,
+  addFeedback,
   type DbComment, type ReviewStatus, type FeedbackType,
 } from "@/lib/data";
 import { runModerationAction, type ModeratorAction } from "@/lib/moderation-actions";
@@ -126,7 +126,6 @@ function ReviewQueuePage() {
   const [sort, setSort] = useState<SortKey>("confidence");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [drawerId, setDrawerId] = useState<string | null>(null);
-  const [seeding, setSeeding] = useState(false);
 
   // Only flagged comments enter the queue
   const flagged = useMemo(
@@ -220,42 +219,6 @@ function ReviewQueuePage() {
   const bulkHide     = () => runBulk("hide",     "Hidden");
   const bulkDelete   = () => runBulk("delete",   "Deleted");
 
-  const seed = async () => {
-    setSeeding(true);
-    try {
-      const { data: authData } = await supabase.auth.getUser();
-      const uid = authData?.user?.id;
-      if (!uid) throw new Error("You must be logged in to seed data");
-
-      const inserted = await seedSampleFlaggedComments();
-      if (!inserted || !inserted.length) throw new Error("No comments seeded locally");
-
-      toast.info("Analyzing with DeepSeek...");
-
-      const res = await fetch("http://localhost:5000/api/rpc/seedSampleData", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ comments: inserted })
-      });
-      if (!res.ok) throw new Error("Failed to run AI analysis");
-      
-      const { analyses } = await res.json();
-      
-      for (const a of analyses) {
-        if (!a.error && a.id) {
-          await supabase.from("comments").update({
-            sentiment: a.sentiment,
-            category: a.categories && a.categories.length ? (a.categories[0] === 'safe' ? 'neutral' : a.categories[0]) : "neutral"
-          }).eq("id", a.id);
-        }
-      }
-
-      toast.success(`Seeded and analyzed ${inserted.length} comments!`);
-      await reload();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to seed");
-    } finally { setSeeding(false); }
-  };
 
   const drawer = drawerId ? enriched.find((e) => e.row.id === drawerId) ?? null : null;
 
@@ -273,14 +236,6 @@ function ReviewQueuePage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button
-            onClick={seed}
-            disabled={seeding}
-            className="inline-flex items-center gap-1.5 rounded-md border bg-secondary/70 px-3 py-2 text-sm font-medium backdrop-blur hover:bg-accent disabled:opacity-60"
-          >
-            {seeding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Seed sample data
-          </button>
         </div>
       </header>
 
@@ -297,8 +252,7 @@ function ReviewQueuePage() {
         <EmptyState
           icon={Inbox}
           title="Review queue is empty"
-          description="No AI-flagged comments yet. Seed realistic sample data to explore the workflow, or ingest live comments from the Dashboard."
-          action={{ label: seeding ? "Seeding…" : "Seed sample data", onClick: seed }}
+          description="No AI-flagged comments yet. Ingest live comments from the Dashboard."
         />
       ) : (
         <>
