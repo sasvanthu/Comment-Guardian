@@ -18,6 +18,11 @@ import {
   disconnectInstagram,
 } from "@/lib/integrations/instagram";
 import {
+  testFacebookConnection,
+  syncFacebookNow,
+  disconnectFacebook,
+} from "@/lib/integrations/facebook";
+import {
   testYoutubeConnection,
   syncYoutubeNow,
   disconnectYoutube,
@@ -76,6 +81,9 @@ export function PlatformConnections() {
   const igTest = testInstagramConnection;
   const igSync = syncInstagramNow;
   const igDisconnect = disconnectInstagram;
+  const fbTest = testFacebookConnection;
+  const fbSync = syncFacebookNow;
+  const fbDisconnect = disconnectFacebook;
   const ytTest = testYoutubeConnection;
   const ytSync = syncYoutubeNow;
   const ytDisconnect = disconnectYoutube;
@@ -189,6 +197,54 @@ export function PlatformConnections() {
     }
   };
 
+  const doFbTest = async () => {
+    setBusy((b) => ({ ...b, facebook_test: true }));
+    try {
+      const res = await fbTest();
+      if (res.ok) {
+        toast.success("Facebook connection OK", { description: `${res.account.name} (id ${res.account.id})` });
+      } else {
+        toast.error("Facebook connection failed", { description: `${res.status}: ${res.error}` });
+      }
+    } catch (e) {
+      toast.error("Test failed", { description: (e as Error).message });
+    } finally {
+      setBusy((b) => ({ ...b, facebook_test: false }));
+    }
+  };
+
+  const doFbSync = async () => {
+    setBusy((b) => ({ ...b, facebook: true }));
+    try {
+      const res = await fbSync();
+      if (res.ok) {
+        toast.success("Facebook synced", {
+          description: `${res.imported} imported, ${res.skipped} skipped, ${res.failed} failed (${res.comment_count} comments)`,
+        });
+      } else if (res.reason === "not_configured") {
+        toast.warning("Facebook not configured", { description: "Add FACEBOOK_PAGE_ACCESS_TOKEN and FACEBOOK_PAGE_ID to project secrets." });
+      } else {
+        toast.error("Facebook sync failed", { description: res.error ?? "Unknown error" });
+      }
+    } catch (e) {
+      toast.error("Sync failed", { description: (e as Error).message });
+    } finally {
+      setBusy((b) => ({ ...b, facebook: false }));
+    }
+  };
+
+  const doFbDisconnect = async () => {
+    setBusy((b) => ({ ...b, facebook_disc: true }));
+    try {
+      await fbDisconnect();
+      toast.success("Facebook disconnected");
+    } catch (e) {
+      toast.error("Disconnect failed", { description: (e as Error).message });
+    } finally {
+      setBusy((b) => ({ ...b, facebook_disc: false }));
+    }
+  };
+
   const doYtTest = async () => {
     setBusy((b) => ({ ...b, youtube_test: true }));
     try {
@@ -292,26 +348,26 @@ export function PlatformConnections() {
 
               <div className="mt-auto flex flex-col gap-1.5">
                 <button
-                  onClick={() => void (p === "instagram" ? doIgSync() : p === "youtube" ? doYtSync() : doSync(p))}
+                  onClick={() => void (p === "instagram" ? doIgSync() : p === "facebook" ? doFbSync() : p === "youtube" ? doYtSync() : doSync(p))}
                   disabled={busy[p]}
                   className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 >
                   <RefreshCw className={`h-3.5 w-3.5 ${busy[p] ? "animate-spin" : ""}`} />
                   {busy[p] ? "Syncing…" : "Sync now"}
                 </button>
-                {(p === "instagram" || p === "youtube") && (
+                {(p === "instagram" || p === "facebook" || p === "youtube") && (
                   <div className="flex gap-1.5">
                     <button
-                      onClick={() => void (p === "instagram" ? doIgTest() : doYtTest())}
-                      disabled={p === "instagram" ? busy.instagram_test : busy.youtube_test}
+                      onClick={() => void (p === "instagram" ? doIgTest() : p === "facebook" ? doFbTest() : doYtTest())}
+                      disabled={p === "instagram" ? busy.instagram_test : p === "facebook" ? busy.facebook_test : busy.youtube_test}
                       className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border bg-secondary px-2 py-1.5 text-[11px] font-semibold hover:bg-secondary/80 disabled:opacity-50"
                     >
                       <PlugZap className="h-3 w-3" />
-                      {(p === "instagram" ? busy.instagram_test : busy.youtube_test) ? "Testing…" : "Test"}
+                      {(p === "instagram" ? busy.instagram_test : p === "facebook" ? busy.facebook_test : busy.youtube_test) ? "Testing…" : "Test"}
                     </button>
                     <button
-                      onClick={() => void (p === "instagram" ? doIgDisconnect() : doYtDisconnect())}
-                      disabled={p === "instagram" ? busy.instagram_disc : busy.youtube_disc}
+                      onClick={() => void (p === "instagram" ? doIgDisconnect() : p === "facebook" ? doFbDisconnect() : doYtDisconnect())}
+                      disabled={p === "instagram" ? busy.instagram_disc : p === "facebook" ? busy.facebook_disc : busy.youtube_disc}
                       className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border px-2 py-1.5 text-[11px] font-semibold text-muted-foreground hover:bg-muted disabled:opacity-50"
                     >
                       <Unplug className="h-3 w-3" />

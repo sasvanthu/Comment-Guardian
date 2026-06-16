@@ -194,6 +194,29 @@ exports.disconnectPlatform = async (req, res) => res.json({ ok: true });
 exports.syncPlatform = async (req, res) => res.json({ status: "success", analyzed: 0, toxic: 0 });
 exports.syncAllPlatforms = async (req, res) => res.json({ status: "success", analyzed: 0, toxic: 0 });
 
+const facebookService = require('../services/facebookService');
+
+exports.testFacebookConnection = async (req, res, next) => {
+  try {
+    const result = await facebookService.testFacebookConnection();
+    res.json(result);
+  } catch (e) { next(e); }
+};
+
+exports.syncFacebookNow = async (req, res, next) => {
+  try {
+    const result = await facebookService.syncFacebookForUser(supabaseAdmin, req.body.userId || "dummy-user");
+    res.json(result);
+  } catch (e) { next(e); }
+};
+
+exports.disconnectFacebook = async (req, res, next) => {
+  try {
+    await facebookService.disconnectFacebookForUser(supabaseAdmin, req.body.userId || "dummy-user");
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+};
+
 const instagramService = require('../services/instagramService');
 
 exports.testInstagramConnection = async (req, res, next) => {

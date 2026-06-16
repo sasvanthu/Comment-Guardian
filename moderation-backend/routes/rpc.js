@@ -25,4 +25,12 @@ router.post('/testInstagramConnection', c.testInstagramConnection);
 router.post('/syncInstagramNow', c.syncInstagramNow);
 router.post('/disconnectInstagram', c.disconnectInstagram);
 
+router.post('/testFacebookConnection', c.testFacebookConnection);
+router.post('/syncFacebookNow', c.syncFacebookNow);
+router.post('/disconnectFacebook', c.disconnectFacebook);
+
+router.post('/testYoutubeConnection', c.testYoutubeConnection);
+router.post('/syncYoutubeNow', c.syncYoutubeNow);
+router.post('/disconnectYoutube', c.disconnectYoutube);
+
 module.exports = router;
