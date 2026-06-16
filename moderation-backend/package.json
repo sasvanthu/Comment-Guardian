@@ -1,7 +1,7 @@
 {
-  "name": "moderation-backend",
+  "name": "trustlens-backend",
   "version": "1.0.0",
-  "description": "Social Media Comment Moderation Tool - Backend API",
+  "description": "Social Media Comment Moderation Tool - TrustLens Backend API",
   "main": "server.js",
   "type": "commonjs",
   "scripts": {

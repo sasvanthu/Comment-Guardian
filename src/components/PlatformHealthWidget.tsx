@@ -1,13 +1,14 @@
 import { useMemo } from "react";
-import { Twitter, Facebook, Instagram, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Twitter, Facebook, Instagram, Youtube, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import type { DbComment } from "@/lib/data";
 
-type Platform = "twitter" | "facebook" | "instagram";
+type Platform = "twitter" | "facebook" | "instagram" | "youtube";
 
 const META: Record<Platform, { label: string; icon: typeof Twitter; accent: string }> = {
   twitter:   { label: "Twitter / X", icon: Twitter,   accent: "from-twitter/30 to-twitter/5 text-twitter" },
   facebook:  { label: "Facebook",    icon: Facebook,  accent: "from-facebook/30 to-facebook/5 text-facebook" },
   instagram: { label: "Instagram",   icon: Instagram, accent: "from-pink-500/30 to-purple-500/10 text-pink-300" },
+  youtube:   { label: "YouTube",     icon: Youtube,   accent: "from-red-500/30 to-red-600/10 text-red-400" },
 };
 
 function isWithin(ms: number, iso: string) { return Date.now() - +new Date(iso) < ms; }
@@ -30,7 +31,7 @@ function platformStats(rows: DbComment[], p: Platform) {
 }
 
 export function PlatformHealthWidget({ allRows }: { allRows: DbComment[] }) {
-  const platforms: Platform[] = ["twitter", "facebook", "instagram"];
+  const platforms: Platform[] = ["twitter", "facebook", "instagram", "youtube"];
   const data = useMemo(() => platforms.map((p) => ({ p, s: platformStats(allRows, p) })), [allRows]);
 
   return (

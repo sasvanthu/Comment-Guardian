@@ -1,8 +1,8 @@
-# ModGuard
+# TrustLens
 
 > AI-powered social media comment moderation for Twitter, Facebook, and Instagram.
 
-ModGuard helps teams detect, review, and act on toxic comments, cyberbullying, and harassment using configurable AI confidence scoring and automation rules.
+TrustLens helps teams detect, review, and act on toxic comments, cyberbullying, and harassment using configurable AI confidence scoring and automation rules.
 
 ## Pages
 

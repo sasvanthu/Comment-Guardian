@@ -216,3 +216,26 @@ exports.disconnectInstagram = async (req, res, next) => {
     res.json({ ok: true });
   } catch (e) { next(e); }
 };
+
+const youtubeService = require('../services/youtubeService');
+
+exports.testYoutubeConnection = async (req, res, next) => {
+  try {
+    const result = await youtubeService.testYoutubeConnection();
+    res.json(result);
+  } catch (e) { next(e); }
+};
+
+exports.syncYoutubeNow = async (req, res, next) => {
+  try {
+    const result = await youtubeService.syncYoutubeForUser(supabaseAdmin, req.body.userId || "dummy-user");
+    res.json(result);
+  } catch (e) { next(e); }
+};
+
+exports.disconnectYoutube = async (req, res, next) => {
+  try {
+    await youtubeService.disconnectYoutubeForUser(supabaseAdmin, req.body.userId || "dummy-user");
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+};

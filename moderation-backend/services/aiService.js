@@ -38,14 +38,16 @@ Return ONLY valid JSON with this exact shape:
   "toxicityScore": 0-100,
   "confidence": 0-100,
   "categories": ["safe" | "toxic" | "hate" | "harassment" | "cyberbullying" | "threats" | "spam" | "scam" | "sexual" | "misinformation"],
-  "decision": "allow" | "review" | "delete" | "block",
+  "decision": "allow" | "review" | "rewrite" | "delete" | "block",
+  "rewrittenText": "If the comment is negative, toxic, or offensive, provide a positive, polite, and constructive version of the same underlying thought here. If it is already positive or safe, leave this blank.",
   "reason": "short explanation"
 }
 
 Decision policy:
 - "block" for hate speech, threats, severe harassment, scams, or repeated severe abuse.
 - "delete" for clearly toxic, spam, or offensive content (toxicityScore >= 70).
-- "review" for borderline (40-69).
+- "rewrite" for borderline or negative content (40-69) where a positive alternative can be formulated.
+- "review" for borderline where automatic rewriting is unsafe.
 - "allow" for safe content (<40).`;
 
 const USER_PROMPT = (text) =>
@@ -72,7 +74,7 @@ function safeJsonParse(content) {
 }
 
 const ALLOWED_CATEGORIES = ['safe', 'toxic', 'hate', 'harassment', 'cyberbullying', 'threats', 'spam', 'scam', 'sexual', 'misinformation'];
-const ALLOWED_DECISIONS = ['allow', 'review', 'delete', 'block'];
+const ALLOWED_DECISIONS = ['allow', 'review', 'rewrite', 'delete', 'block'];
 const ALLOWED_SENTIMENTS = ['positive', 'negative', 'neutral'];
 
 function clamp(n, lo = 0, hi = 100) { return Math.max(lo, Math.min(hi, Number(n) || 0)); }
@@ -97,6 +99,7 @@ function normalize(parsed = {}, originalText = '') {
     toxic: toxicityScore >= 70 || decision === 'delete' || decision === 'block',
     score: toxicityScore, // backwards-compat
     reason: typeof parsed.reason === 'string' ? parsed.reason : '',
+    rewrittenText: typeof parsed.rewrittenText === 'string' ? parsed.rewrittenText : '',
   };
 }
 

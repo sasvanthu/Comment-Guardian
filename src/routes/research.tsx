@@ -218,7 +218,7 @@ function ResearchPage() {
                     <div className="rounded-lg border p-4">
                       <h3 className="text-sm font-semibold">Behavioral patterns</h3>
                       <ul className="mt-2 space-y-1 text-sm">
-                        {result.patterns.map((p, i) => (
+                        {result.patterns.map((p: string, i: number) => (
                           <li key={i} className="flex gap-2"><span className="text-primary">•</span><span>{p}</span></li>
                         ))}
                       </ul>
@@ -229,7 +229,7 @@ function ResearchPage() {
                     <div>
                       <h3 className="mb-2 text-sm font-semibold">Top categories</h3>
                       <div className="flex flex-wrap gap-1.5">
-                        {result.topCategories.map((c, i) => (
+                        {result.topCategories.map((c: string, i: number) => (
                           <span key={i} className="rounded-full border bg-secondary/40 px-2.5 py-1 text-xs font-medium">{c}</span>
                         ))}
                       </div>
@@ -240,7 +240,7 @@ function ResearchPage() {
                     <div className="rounded-lg border p-4">
                       <h3 className="mb-2 text-sm font-semibold">Evidence</h3>
                       <div className="space-y-3">
-                        {result.evidence.map((e, i) => (
+                        {result.evidence.map((e: any, i: number) => (
                           <div key={i} className="border-l-2 border-primary/50 pl-3">
                             <p className="flex items-start gap-1.5 text-sm italic text-foreground/90">
                               <Quote className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />

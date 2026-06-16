@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/hooks/use-auth";
-import { listUsers, createUser, deleteUser, setUserRole } from "@/lib/admin.functions";
+import { listUsers, createUser, deleteUser, setUserRole, AdminUserRow } from "@/lib/admin.functions";
 import { formatDistanceToNow } from "date-fns";
 
 export default AdminPage;
@@ -78,7 +78,7 @@ function AdminPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">User management</h1>
-          <p className="text-sm text-muted-foreground">Create, delete, and assign roles to ModGuard users.</p>
+          <p className="text-sm text-muted-foreground">Create, delete, and assign roles to TrustLens users.</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -127,7 +127,7 @@ function AdminPage() {
           </TableHeader>
           <TableBody>
             {usersQ.isLoading && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">Loading…</TableCell></TableRow>}
-            {usersQ.data?.users.map((u) => {
+            {(usersQ.data?.users as AdminUserRow[] | undefined)?.map((u: AdminUserRow) => {
               const isAdminUser = u.roles.includes("admin");
               return (
                 <TableRow key={u.id}>
@@ -135,7 +135,7 @@ function AdminPage() {
                   <TableCell className="text-muted-foreground">{u.email}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      {u.roles.map((r) => <Badge key={r} variant={r === "admin" ? "default" : "secondary"}>{r}</Badge>)}
+                      {u.roles.map((r: string) => <Badge key={r} variant={r === "admin" ? "default" : "secondary"}>{r}</Badge>)}
                     </div>
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(u.created_at), { addSuffix: true })}</TableCell>

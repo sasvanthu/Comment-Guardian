@@ -215,6 +215,32 @@ exports.deleteComment = async (id) => {
   return { id, deleted: true };
 };
 
+exports.replyToComment = async (id, message) => {
+  const creds = loadInstagramCreds();
+  if (!creds) throw new Error("No creds");
+  const url = `${GRAPH}/${encodeURIComponent(id)}/replies`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, access_token: creds.token }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`reply failed (${res.status}): ${err.error?.message || ''}`);
+  }
+  const data = await res.json();
+  return { id, repliedId: data.id };
+};
+
+exports.hideComment = async (id) => {
+  const creds = loadInstagramCreds();
+  if (!creds) throw new Error("No creds");
+  const url = `${GRAPH}/${encodeURIComponent(id)}?hide=true&access_token=${encodeURIComponent(creds.token)}`;
+  const res = await fetch(url, { method: 'POST' });
+  if (!res.ok) throw new Error(`hide failed (${res.status})`);
+  return { id, hidden: true };
+};
+
 exports.bulkDelete = async (ids = []) => {
   const results = [];
   for (const id of ids) {

@@ -65,7 +65,7 @@ function Dashboard() {
     <Layout>
       <header className="mb-4 flex flex-wrap items-end justify-between gap-3 border-b border-border pb-3">
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">// modguard / control_plane</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">// trustlens / control_plane</p>
           <h1 className="mt-0.5 text-xl font-semibold tracking-tight text-foreground md:text-[22px]">Operations Dashboard</h1>
           <p className="text-[12.5px] text-muted-foreground">Trust & safety telemetry across connected channels.</p>
         </div>

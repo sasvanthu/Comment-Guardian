@@ -1,4 +1,4 @@
-export type Platform = "twitter" | "facebook" | "instagram";
+export type Platform = "twitter" | "facebook" | "instagram" | "youtube";
 export type Sentiment = "toxic" | "positive" | "neutral";
 export type Category =
   | "safe"

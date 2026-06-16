@@ -36,6 +36,7 @@ export interface DeepSeekAnalysis {
   scores: Record<ScoreKey, number>;
   emotions: Record<EmotionKey, number>;
   reason?: string;
+  rewritten_text?: string;
   model: string;
   raw: unknown;
 }
@@ -53,6 +54,7 @@ Given a single user comment, return STRICT JSON only (no prose) with this shape:
  "priority": "low"|"medium"|"high"|"critical",
  "risk_score": 0..100,
  "reason": short string (<=200 chars),
+ "rewritten_text": "If the comment is negative, toxic, or offensive, provide a positive, polite, and constructive version of the same underlying thought here. If it is already positive or safe, leave this blank.",
  "scores": {
    "toxicity":0..1,"harassment":0..1,"spam":0..1,"hate":0..1,
    "violence":0..1,"threats":0..1,"self_harm":0..1,"extremism":0..1,
@@ -162,6 +164,7 @@ function coerce(parsed: Record<string, unknown>): Omit<DeepSeekAnalysis, "model"
     scores,
     emotions,
     reason: typeof parsed.reason === "string" ? parsed.reason.slice(0, 280) : undefined,
+    rewritten_text: typeof parsed.rewritten_text === "string" ? parsed.rewritten_text : undefined,
   };
 }
 

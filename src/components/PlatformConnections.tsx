@@ -7,7 +7,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 
-import { Twitter, Facebook, Instagram, RefreshCw, AlertCircle, Clock, CheckCircle2, Loader2, Plug, PlugZap, Unplug } from "lucide-react";
+import { Twitter, Facebook, Instagram, Youtube, RefreshCw, AlertCircle, Clock, CheckCircle2, Loader2, Plug, PlugZap, Unplug } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { syncPlatform, syncAllPlatforms } from "@/lib/platforms.functions";
@@ -17,6 +17,11 @@ import {
   syncInstagramNow,
   disconnectInstagram,
 } from "@/lib/integrations/instagram";
+import {
+  testYoutubeConnection,
+  syncYoutubeNow,
+  disconnectYoutube,
+} from "@/lib/integrations/youtube";
 
 interface ConnRow {
   id: string;
@@ -34,6 +39,7 @@ const PLATFORM_META: Record<PlatformId, { label: string; Icon: typeof Twitter; c
   twitter:   { label: "Twitter / X", Icon: Twitter,   color: "text-sky-400" },
   facebook:  { label: "Facebook",    Icon: Facebook,  color: "text-blue-500" },
   instagram: { label: "Instagram",   Icon: Instagram, color: "text-fuchsia-400" },
+  youtube:   { label: "YouTube",     Icon: Youtube,   color: "text-red-500" },
 };
 
 function relTime(iso: string | null): string {
@@ -70,6 +76,9 @@ export function PlatformConnections() {
   const igTest = testInstagramConnection;
   const igSync = syncInstagramNow;
   const igDisconnect = disconnectInstagram;
+  const ytTest = testYoutubeConnection;
+  const ytSync = syncYoutubeNow;
+  const ytDisconnect = disconnectYoutube;
 
   useEffect(() => {
     let alive = true;
@@ -118,10 +127,10 @@ export function PlatformConnections() {
   };
 
   const doSyncAll = async () => {
-    setBusy({ twitter: true, facebook: true, instagram: true });
+    setBusy({ twitter: true, facebook: true, instagram: true, youtube: true });
     try {
-      const { results } = await syncAll({});
-      const ok = results.filter((r) => r.reason === "ok").length;
+      const { results } = await syncAll();
+      const ok = results.filter((r: any) => r.reason === "ok").length;
       toast.success(`Synced ${ok}/${results.length} platforms`);
     } catch (e) {
       toast.error("Sync all failed", { description: (e as Error).message });
@@ -133,7 +142,7 @@ export function PlatformConnections() {
   const doIgTest = async () => {
     setBusy((b) => ({ ...b, instagram_test: true }));
     try {
-      const res = await igTest({});
+      const res = await igTest();
       if (res.ok) {
         toast.success("Instagram connection OK", { description: `@${res.account.username} (id ${res.account.id})` });
       } else {
@@ -149,7 +158,7 @@ export function PlatformConnections() {
   const doIgSync = async () => {
     setBusy((b) => ({ ...b, instagram: true }));
     try {
-      const res = await igSync({});
+      const res = await igSync();
       if (res.ok) {
         toast.success("Instagram synced", {
           description: `${res.imported} imported, ${res.skipped} skipped, ${res.failed} failed (${res.comment_count} comments across ${res.media_count} posts)`,
@@ -171,12 +180,62 @@ export function PlatformConnections() {
   const doIgDisconnect = async () => {
     setBusy((b) => ({ ...b, instagram_disc: true }));
     try {
-      await igDisconnect({});
+      await igDisconnect();
       toast.success("Instagram disconnected");
     } catch (e) {
       toast.error("Disconnect failed", { description: (e as Error).message });
     } finally {
       setBusy((b) => ({ ...b, instagram_disc: false }));
+    }
+  };
+
+  const doYtTest = async () => {
+    setBusy((b) => ({ ...b, youtube_test: true }));
+    try {
+      const res = await ytTest();
+      if (res.ok) {
+        toast.success("YouTube connection OK", { description: res.account ? `@${res.account.username}` : "Valid" });
+      } else {
+        toast.error("YouTube connection failed", { description: `${res.status}: ${res.error}` });
+      }
+    } catch (e) {
+      toast.error("Test failed", { description: (e as Error).message });
+    } finally {
+      setBusy((b) => ({ ...b, youtube_test: false }));
+    }
+  };
+
+  const doYtSync = async () => {
+    setBusy((b) => ({ ...b, youtube: true }));
+    try {
+      const res = await ytSync();
+      if (res.ok) {
+        toast.success("YouTube synced", {
+          description: `${res.imported} imported, ${res.skipped} skipped, ${res.failed} failed`,
+        });
+      } else if (res.reason === "not_configured") {
+        toast.warning("YouTube not configured", { description: "Add YOUTUBE_API_KEY and YOUTUBE_CHANNEL_ID to project secrets." });
+      } else if (res.reason === "rate_limited") {
+        toast.warning("YouTube rate limited", { description: "Try again later." });
+      } else {
+        toast.error("YouTube sync failed", { description: res.error ?? "Unknown error" });
+      }
+    } catch (e) {
+      toast.error("Sync failed", { description: (e as Error).message });
+    } finally {
+      setBusy((b) => ({ ...b, youtube: false }));
+    }
+  };
+
+  const doYtDisconnect = async () => {
+    setBusy((b) => ({ ...b, youtube_disc: true }));
+    try {
+      await ytDisconnect();
+      toast.success("YouTube disconnected");
+    } catch (e) {
+      toast.error("Disconnect failed", { description: (e as Error).message });
+    } finally {
+      setBusy((b) => ({ ...b, youtube_disc: false }));
     }
   };
 
@@ -233,26 +292,26 @@ export function PlatformConnections() {
 
               <div className="mt-auto flex flex-col gap-1.5">
                 <button
-                  onClick={() => void (p === "instagram" ? doIgSync() : doSync(p))}
+                  onClick={() => void (p === "instagram" ? doIgSync() : p === "youtube" ? doYtSync() : doSync(p))}
                   disabled={busy[p]}
                   className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 >
                   <RefreshCw className={`h-3.5 w-3.5 ${busy[p] ? "animate-spin" : ""}`} />
                   {busy[p] ? "Syncing…" : "Sync now"}
                 </button>
-                {p === "instagram" && (
+                {(p === "instagram" || p === "youtube") && (
                   <div className="flex gap-1.5">
                     <button
-                      onClick={() => void doIgTest()}
-                      disabled={busy.instagram_test}
+                      onClick={() => void (p === "instagram" ? doIgTest() : doYtTest())}
+                      disabled={p === "instagram" ? busy.instagram_test : busy.youtube_test}
                       className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border bg-secondary px-2 py-1.5 text-[11px] font-semibold hover:bg-secondary/80 disabled:opacity-50"
                     >
                       <PlugZap className="h-3 w-3" />
-                      {busy.instagram_test ? "Testing…" : "Test"}
+                      {(p === "instagram" ? busy.instagram_test : busy.youtube_test) ? "Testing…" : "Test"}
                     </button>
                     <button
-                      onClick={() => void doIgDisconnect()}
-                      disabled={busy.instagram_disc}
+                      onClick={() => void (p === "instagram" ? doIgDisconnect() : doYtDisconnect())}
+                      disabled={p === "instagram" ? busy.instagram_disc : busy.youtube_disc}
                       className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border px-2 py-1.5 text-[11px] font-semibold text-muted-foreground hover:bg-muted disabled:opacity-50"
                     >
                       <Unplug className="h-3 w-3" />

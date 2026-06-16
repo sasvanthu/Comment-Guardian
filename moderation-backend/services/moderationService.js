@@ -12,6 +12,7 @@ const log = require('./logService');
 const twitter = require('./twitterService');
 const facebook = require('./facebookService');
 const instagram = require('./instagramService');
+const youtube = require('./youtubeService');
 
 const BLOCK_CATEGORIES = new Set(['hate', 'threats', 'cyberbullying', 'scam']);
 
@@ -19,6 +20,7 @@ function platformService(platform) {
   if (platform === 'twitter') return twitter;
   if (platform === 'facebook') return facebook;
   if (platform === 'instagram') return instagram;
+  if (platform === 'youtube') return youtube;
   return null;
 }
 
@@ -27,12 +29,13 @@ async function gatherAll() {
     try { return await fn(); }
     catch (e) { console.warn(`[moderation] ${label} fetch failed: ${e.message}`); return []; }
   }
-  const [tw, fb, ig] = await Promise.all([
+  const [tw, fb, ig, yt] = await Promise.all([
     safe(() => twitter.fetchComments(), 'twitter'),
     safe(() => facebook.fetchComments(), 'facebook'),
     safe(() => instagram.fetchComments(), 'instagram'),
+    safe(() => youtube.fetchComments(), 'youtube'),
   ]);
-  return [...tw, ...fb, ...ig];
+  return [...tw, ...fb, ...ig, ...yt];
 }
 
 function shouldBlock(analysis, threshold = 80) {
@@ -45,6 +48,10 @@ function shouldBlock(analysis, threshold = 80) {
 
 function shouldDelete(analysis, threshold = 70) {
   return analysis.decision === 'delete' || analysis.decision === 'block' || analysis.toxicityScore >= threshold;
+}
+
+function shouldRewrite(analysis) {
+  return analysis.decision === 'rewrite' && typeof analysis.rewrittenText === 'string' && analysis.rewrittenText.trim().length > 0;
 }
 
 /**
@@ -78,7 +85,18 @@ async function run(options = {}) {
     const svc = platformService(c.platform);
     const item = { id: c.id, platform: c.platform, author: c.author, authorId: c.authorId || c.author, analysis: a, actions: [] };
 
-    if (shouldDelete(a, deleteThreshold)) {
+    if (shouldRewrite(a)) {
+      if (!dryRun && svc) {
+        try {
+          if (svc.hideComment) await svc.hideComment(c.id);
+          else await svc.deleteComment(c.id);
+          
+          if (svc.replyToComment) await svc.replyToComment(c.id, a.rewrittenText);
+          item.actions.push('rewritten');
+        } catch (e) { item.errors = (item.errors || []).concat(`rewrite: ${e.message}`); }
+      } else { item.actions.push('would-rewrite'); }
+      log.append({ action: 'rewrite', commentId: c.id, userId: item.authorId, platform: c.platform, reason: a.reason, scores: { toxicity: a.toxicityScore, sentiment: a.sentimentScore, confidence: a.confidence } });
+    } else if (shouldDelete(a, deleteThreshold)) {
       if (!dryRun && svc) {
         try { await svc.deleteComment(c.id); item.actions.push('deleted'); }
         catch (e) { item.errors = (item.errors || []).concat(`delete: ${e.message}`); }
@@ -103,6 +121,7 @@ async function run(options = {}) {
     analyzed: analyses.length,
     deleted: report.filter((r) => r.actions?.includes('deleted')).length,
     blocked: report.filter((r) => r.actions?.includes('blocked')).length,
+    rewritten: report.filter((r) => r.actions?.includes('rewritten')).length,
     report,
   };
 }

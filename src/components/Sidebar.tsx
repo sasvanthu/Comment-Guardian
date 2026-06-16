@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard, MessageSquare, ShieldCheck, BarChart3, Settings,
-  ChevronLeft, ChevronRight, ShieldAlert, Twitter, Facebook, Instagram,
+  ChevronLeft, ChevronRight, ShieldAlert, Twitter, Facebook, Instagram, Youtube,
   AlertOctagon, Ban, Languages, Brain, Users, LogOut, ClipboardCheck, Workflow,
 } from "lucide-react";
 import { platformConnected } from "@/lib/storage";
@@ -28,7 +28,7 @@ const baseLinks = [
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
-  const [status, setStatus] = useState({ twitter: false, facebook: false, instagram: false });
+  const [status, setStatus] = useState({ twitter: false, facebook: false, instagram: false, youtube: false });
   const location = useLocation();
   const { user, isAdmin, signOut } = useAuth();
   const links = isAdmin
@@ -40,6 +40,7 @@ export function Sidebar() {
       twitter: platformConnected("twitter"),
       facebook: platformConnected("facebook"),
       instagram: platformConnected("instagram"),
+      youtube: platformConnected("youtube"),
     });
   }, [location.pathname]);
 
@@ -57,7 +58,7 @@ export function Sidebar() {
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <p className="truncate text-[13px] font-semibold tracking-tight text-foreground">ModGuard</p>
+              <p className="truncate text-[13px] font-semibold tracking-tight text-foreground">TrustLens</p>
               <p className="truncate font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">v2.0 / Enterprise</p>
             </div>
           )}
@@ -108,6 +109,7 @@ export function Sidebar() {
               <StatusRow icon={Twitter} label="Twitter" ok={status.twitter} />
               <StatusRow icon={Facebook} label="Facebook" ok={status.facebook} />
               <StatusRow icon={Instagram} label="Instagram" ok={status.instagram} />
+              <StatusRow icon={Youtube} label="YouTube" ok={status.youtube} />
             </div>
           </div>
         )}

@@ -76,6 +76,15 @@ async function deleteComment(id) {
   return { id, deleted: !!data?.success };
 }
 
+async function replyToComment(id, message) {
+  console.log('[facebook] replyToComment', id);
+  const { data } = await axios.post(`${BASE}/${id}/comments`, { message }, {
+    params: { access_token: token() },
+    timeout: 15000,
+  });
+  return { id, repliedId: data?.id };
+}
+
 async function bulkDelete(ids = []) {
   const results = [];
   for (const id of ids) {
@@ -85,7 +94,13 @@ async function bulkDelete(ids = []) {
       results.push({ id, deleted: false, error: e.message });
     }
   }
-  return results;
+async function hideComment(id) {
+  console.log('[facebook] hideComment', id);
+  const { data } = await axios.post(`${BASE}/${id}`, { is_hidden: true }, {
+    params: { access_token: token() },
+    timeout: 15000,
+  });
+  return { id, hidden: !!data?.success };
 }
 
-module.exports = { fetchComments, deleteComment, bulkDelete, normalize };
+module.exports = { fetchComments, deleteComment, hideComment, replyToComment, bulkDelete, normalize };

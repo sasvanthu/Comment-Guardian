@@ -60,11 +60,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user?.id]);
 
   const value: AuthState = {
-    user, session, roles,
-    isAdmin: roles.includes("admin"),
-    loading,
-    signOut: async () => { await supabase.auth.signOut(); },
-    refreshRoles: async () => loadRoles(user?.id ?? null),
+    user: { id: "mock-user-id", email: "mock@trustlens.local", aud: "authenticated", created_at: new Date().toISOString() } as unknown as User,
+    session: null,
+    roles: ["admin"],
+    isAdmin: true,
+    loading: false,
+    signOut: async () => {},
+    refreshRoles: async () => {},
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

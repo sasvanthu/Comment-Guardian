@@ -16,7 +16,7 @@ function TranslatorPage() {
   const [text, setText] = useState("");
   const [target, setTarget] = useState<string>("English");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{ detectedLanguage: string; detectedLanguageCode: string; translation: string } | null>(null);
+  const [result, setResult] = useState<{ detectedLanguage: string; detectedLanguageCode?: string; translation: string } | null>(null);
 
   // Load the user's saved default target language on mount.
   useEffect(() => { setTarget(loadPrefs().defaultTargetLanguage); }, []);
@@ -71,7 +71,7 @@ function TranslatorPage() {
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Source</h2>
             <span className="text-[11px] text-muted-foreground">
-              Auto-detected{result ? `: ${result.detectedLanguage} (${result.detectedLanguageCode})` : ""}
+              Auto-detected{result ? `: ${result.detectedLanguage}${result.detectedLanguageCode ? ` (${result.detectedLanguageCode})` : ""}` : ""}
             </span>
           </div>
           <textarea

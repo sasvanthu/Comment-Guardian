@@ -42,7 +42,7 @@ export function saveKeys(_k: ApiKeys): void {
   // Intentionally a no-op. See file-level SECURITY note.
 }
 
-export function platformConnected(_p: "twitter" | "facebook" | "instagram"): boolean {
+export function platformConnected(_p: "twitter" | "facebook" | "instagram" | "youtube"): boolean {
   // Platform connectivity is determined server-side; the UI no longer
   // claims platforms are connected based on browser-held credentials.
   return false;

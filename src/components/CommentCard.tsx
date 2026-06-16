@@ -233,14 +233,14 @@ export function CommentCard({
               <p className="mt-2 text-sm">{aiResult.reason}</p>
               {aiResult.signals.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
-                  {aiResult.signals.map((s, i) => (
+                  {aiResult.signals.map((s: string, i: number) => (
                     <span key={i} className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">{s}</span>
                   ))}
                 </div>
               )}
               {aiResult.categories.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
-                  {aiResult.categories.map((cat, i) => (
+                  {aiResult.categories.map((cat: string, i: number) => (
                     <span key={i} className="rounded-md border bg-secondary/40 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide">{cat}</span>
                   ))}
                 </div>
@@ -262,7 +262,7 @@ export function CommentCard({
               <p className="mt-2 text-sm">{spamResult.reason}</p>
               {spamResult.signals.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
-                  {spamResult.signals.map((s, i) => (
+                  {spamResult.signals.map((s: string, i: number) => (
                     <span key={i} className="rounded-full bg-amber-500/10 px-2 py-0.5 font-medium text-amber-300">{s}</span>
                   ))}
                 </div>
