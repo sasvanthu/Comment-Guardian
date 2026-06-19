@@ -241,6 +241,15 @@ exports.hideComment = async (id) => {
   return { id, hidden: true };
 };
 
+exports.unhideComment = async (id) => {
+  const creds = loadInstagramCreds();
+  if (!creds) throw new Error("No creds");
+  const url = `${GRAPH}/${encodeURIComponent(id)}?hide=false&access_token=${encodeURIComponent(creds.token)}`;
+  const res = await fetch(url, { method: 'POST' });
+  if (!res.ok) throw new Error(`unhide failed (${res.status})`);
+  return { id, hidden: false };
+};
+
 exports.bulkDelete = async (ids = []) => {
   const results = [];
   for (const id of ids) {

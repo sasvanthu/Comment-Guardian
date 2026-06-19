@@ -20,6 +20,7 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { executePlatformActions } from "@/lib/platforms.functions";
 
 export type ModeratorAction =
   | "approve"
@@ -84,7 +85,7 @@ export async function runModerationAction(
   // 1) Snapshot current state for idempotency + audit "previous_state".
   const [{ data: comments, error: cErr }, { data: rqExisting }] = await Promise.all([
     supabase.from("comments")
-      .select("id, status, review_status, author, platform, text")
+      .select("id, status, review_status, author, platform, text, external_id")
       .in("id", ids),
     supabase.from("review_queue")
       .select("comment_id, status")
@@ -234,6 +235,24 @@ export async function runModerationAction(
   ]);
   if (ma.error) throw ma.error;
   if (al.error) throw al.error;
+
+  // 7) Dispatch external platform actions (delete, hide, approve, block).
+  // The backend will catch these and use the right service (e.g. youtubeService.deleteComment).
+  const extActions = toApply
+    .filter((c) => c.external_id && c.platform)
+    .map((c) => ({
+      platform: c.platform,
+      externalId: c.external_id!,
+      action: action,
+    }));
+
+  if (extActions.length > 0) {
+    try {
+      await executePlatformActions({ actions: extActions });
+    } catch (err) {
+      console.error("Failed to execute platform actions:", err);
+    }
+  }
 
   result.applied = applyIds;
   return result;

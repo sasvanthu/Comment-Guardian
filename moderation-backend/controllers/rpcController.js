@@ -262,3 +262,169 @@ exports.disconnectYoutube = async (req, res, next) => {
     res.json({ ok: true });
   } catch (e) { next(e); }
 };
+
+// --- Twitter ---
+const twitterService = require('../services/twitterService');
+
+exports.testTwitterConnection = async (req, res, next) => {
+  try {
+    const token = process.env.TWITTER_BEARER_TOKEN;
+    if (!token) {
+      return res.json({ ok: false, status: 'not_configured', error: 'Missing TWITTER_BEARER_TOKEN' });
+    }
+    // Quick connectivity test: try fetching user info
+    const api = axios.create({
+      baseURL: 'https://api.twitter.com/2',
+      headers: { Authorization: `Bearer ${token}` },
+      timeout: 15000,
+    });
+    const meRes = await api.get('/users/me');
+    if (meRes.status >= 400) {
+      return res.json({ ok: false, status: 'error', error: `API returned ${meRes.status}` });
+    }
+    const user = meRes.data?.data;
+    res.json({
+      ok: true,
+      status: 'connected',
+      account: { id: user?.id, username: user?.username || user?.name },
+    });
+  } catch (e) {
+    const msg = e.response?.data?.detail || e.response?.data?.title || e.message;
+    res.json({ ok: false, status: 'error', error: msg });
+  }
+};
+
+exports.syncTwitterNow = async (req, res, next) => {
+  try {
+    const token = process.env.TWITTER_BEARER_TOKEN;
+    if (!token) return res.json({ ok: false, reason: 'not_configured' });
+
+    const userId = req.body.userId || 'dummy-user';
+    const started = Date.now();
+
+    await supabaseAdmin.from('platform_connections').upsert(
+      { user_id: userId, platform: 'twitter', status: 'syncing' },
+      { onConflict: 'user_id,platform' }
+    );
+
+    let comments = [];
+    try {
+      comments = await twitterService.fetchComments({ maxPosts: 5, maxPages: 2 });
+    } catch (e) {
+      await supabaseAdmin.from('platform_connections').upsert(
+        { user_id: userId, platform: 'twitter', status: 'error', last_error: e.message },
+        { onConflict: 'user_id,platform' }
+      );
+      return res.json({ ok: false, reason: 'error', error: e.message, imported: 0, skipped: 0, failed: 0, comment_count: 0 });
+    }
+
+    let imported = 0, skipped = 0;
+    if (comments.length) {
+      const rows = comments.map((c) => ({
+        user_id: userId,
+        platform: 'twitter',
+        author: c.author,
+        text: c.text,
+        external_id: c.id,
+        post_id: c.postId,
+        permalink: null,
+        created_at: c.timestamp,
+      }));
+      const { error, count } = await supabaseAdmin.from('comments').upsert(rows, {
+        onConflict: 'user_id,platform,external_id', count: 'exact', ignoreDuplicates: true,
+      });
+      if (error) return res.json({ ok: false, reason: 'error', error: error.message });
+      imported = count ?? 0;
+      skipped = comments.length - imported;
+
+      try {
+        const moderationService = require('../services/moderationService');
+        await moderationService.run({ platform: 'twitter', comments });
+      } catch (err) {
+        console.warn('[twitter] Moderation run failed after sync', err.message);
+      }
+    }
+
+    await supabaseAdmin.from('platform_connections').upsert({
+      user_id: userId, platform: 'twitter', status: 'connected',
+      last_sync_at: new Date().toISOString(), imported_count: imported,
+    }, { onConflict: 'user_id,platform' });
+
+    res.json({ ok: true, reason: 'ok', imported, skipped, failed: 0, comment_count: comments.length, duration_ms: Date.now() - started });
+  } catch (e) { next(e); }
+};
+
+exports.disconnectTwitter = async (req, res, next) => {
+  try {
+    const userId = req.body.userId || 'dummy-user';
+    await supabaseAdmin.from('platform_connections').upsert({
+      user_id: userId, platform: 'twitter', status: 'disconnected', last_error: null, sync_cursor: null,
+    }, { onConflict: 'user_id,platform' });
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+};
+
+exports.executePlatformActions = async (req, res, next) => {
+  try {
+    const { actions } = req.body;
+    if (!Array.isArray(actions)) {
+      return res.status(400).json({ error: "actions must be an array" });
+    }
+
+    const results = [];
+    for (const action of actions) {
+      const { platform, externalId, action: type } = action;
+      if (!platform || !externalId || !type) {
+        results.push({ externalId, success: false, error: "Missing required fields" });
+        continue;
+      }
+
+      let svc;
+      if (platform === 'twitter') svc = twitterService;
+      else if (platform === 'facebook') svc = facebookService;
+      else if (platform === 'instagram') svc = instagramService;
+      else if (platform === 'youtube') svc = youtubeService;
+      else {
+        results.push({ externalId, success: false, error: `Unknown platform: ${platform}` });
+        continue;
+      }
+
+      try {
+        if (type === 'delete' && svc.deleteComment) {
+          await svc.deleteComment(externalId);
+          results.push({ externalId, success: true });
+        } else if (type === 'hide' && svc.hideComment) {
+          await svc.hideComment(externalId);
+          results.push({ externalId, success: true });
+        } else if (type === 'approve') {
+          // 'approve' maps to unhide or publish
+          if (svc.unhideComment) {
+            await svc.unhideComment(externalId);
+            results.push({ externalId, success: true });
+          } else if (svc.approveComment) {
+            await svc.approveComment(externalId);
+            results.push({ externalId, success: true });
+          } else {
+            results.push({ externalId, success: false, error: `Unsupported action 'approve' for platform '${platform}'` });
+          }
+        } else if (type === 'block') {
+          // 'block' maps to banUser
+          if (svc.banUser) {
+            await svc.banUser(externalId);
+            results.push({ externalId, success: true });
+          } else {
+            // Ignore for platforms that don't support API ban natively yet
+            results.push({ externalId, success: false, error: `Unsupported action 'block' for platform '${platform}'` });
+          }
+        } else {
+          results.push({ externalId, success: false, error: `Unsupported action '${type}' for platform '${platform}'` });
+        }
+      } catch (err) {
+        console.error(`[rpc] Platform action failed: ${platform} ${type} ${externalId}`, err.message);
+        results.push({ externalId, success: false, error: err.message });
+      }
+    }
+
+    res.json({ success: true, results });
+  } catch (e) { next(e); }
+};

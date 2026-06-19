@@ -7,17 +7,19 @@
 
 import axios from "axios";
 
+const API_BASE = "http://localhost:5000/api/rpc";
+
 export async function testFacebookConnection() {
-  const res = await axios.post("/api/rpc/testFacebookConnection", {});
+  const res = await axios.post(`${API_BASE}/testFacebookConnection`, {});
   return res.data;
 }
 
 export async function syncFacebookNow() {
-  const res = await axios.post("/api/rpc/syncFacebookNow", {});
+  const res = await axios.post(`${API_BASE}/syncFacebookNow`, {});
   return res.data;
 }
 
 export async function disconnectFacebook() {
-  const res = await axios.post("/api/rpc/disconnectFacebook", {});
+  const res = await axios.post(`${API_BASE}/disconnectFacebook`, {});
   return res.data;
 }

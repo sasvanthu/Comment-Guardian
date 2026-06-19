@@ -106,6 +106,15 @@ async function hideComment(id) {
   return { id, hidden: !!data?.success };
 }
 
+async function unhideComment(id) {
+  console.log('[facebook] unhideComment', id);
+  const { data } = await axios.post(`${BASE}/${id}`, { is_hidden: false }, {
+    params: { access_token: token() },
+    timeout: 15000,
+  });
+  return { id, hidden: !data?.success };
+}
+
 function loadFacebookCreds() {
   const t = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
   const id = process.env.FACEBOOK_PAGE_ID;
@@ -216,10 +225,34 @@ async function disconnectFacebookForUser(supabase, userId) {
   }, { onConflict: "user_id,platform" });
 }
 
+async function banUser(id) {
+  const creds = loadFacebookCreds();
+  if (!creds) throw new Error("No creds");
+  console.log('[facebook] banUser via comment', id);
+  
+  // 1. Get author of the comment
+  const commentRes = await axios.get(`${BASE}/${id}`, {
+    params: { fields: 'from', access_token: creds.token },
+    timeout: 15000,
+  });
+  const authorId = commentRes.data?.from?.id;
+  if (!authorId) throw new Error('Could not resolve author_id for comment');
+  
+  // 2. Block the user from the page
+  const blockRes = await axios.post(`${BASE}/${creds.pageId}/blocked`, { user: authorId }, {
+    params: { access_token: creds.token },
+    timeout: 15000,
+  });
+  
+  return { id, banned: !!blockRes.data?.success, authorId };
+}
+
 module.exports = {
   fetchComments,
   deleteComment,
   hideComment,
+  unhideComment,
+  banUser,
   replyToComment,
   bulkDelete,
   normalize,

@@ -263,7 +263,7 @@ function ReviewQueuePage() {
             </div>
             <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-6">
               <Select label="Platform" value={platform} onChange={(v) => setPlatform(v as typeof platform)}
-                options={[["all","All"],["twitter","Twitter"],["facebook","Facebook"],["instagram","Instagram"]]} />
+                options={[["all","All"],["twitter","Twitter"],["facebook","Facebook"],["instagram","Instagram"],["youtube","YouTube"]]} />
               <Select label="Category" value={category} onChange={setCategory}
                 options={[["all","All"],["toxic","Toxic"],["cyberbullying","Cyberbullying"],["spam","Spam"],["neutral","Neutral"],["positive","Positive"]]} />
               <Select label="Status" value={statusF} onChange={(v) => setStatusF(v as typeof statusF)}

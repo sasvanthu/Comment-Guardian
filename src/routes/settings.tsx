@@ -39,12 +39,61 @@ function SettingsPage() {
             <h2 className="text-base font-semibold">Platform credentials</h2>
           </div>
           <p className="text-sm text-muted-foreground">
-            For security, Twitter, Facebook, Instagram, and AI provider credentials
-            are configured as server-side environment variables, not in the browser.
-            Add <code className="text-xs">TWITTER_BEARER_TOKEN</code>,
-            {" "}<code className="text-xs">FACEBOOK_PAGE_ACCESS_TOKEN</code> + <code className="text-xs">FACEBOOK_PAGE_ID</code>,
-            {" "}<code className="text-xs">INSTAGRAM_ACCESS_TOKEN</code> + <code className="text-xs">INSTAGRAM_ACCOUNT_ID</code>
-            {" "}to your project secrets. Platforms without credentials report as “Not configured”.
+            For security, platform credentials are configured as server-side environment variables,
+            not in the browser. Add the following to your{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5 text-[11px]">.env</code> file:
+          </p>
+          <div className="mt-3 space-y-2 text-[12px]">
+            <div className="rounded-md bg-background/60 p-3 border">
+              <p className="font-semibold text-red-400 mb-1">▸ YouTube (OAuth 2.0)</p>
+              <p className="text-muted-foreground">
+                <code className="text-[11px]">YOUTUBE_OAUTH_CLIENT_ID</code> + <code className="text-[11px]">YOUTUBE_OAUTH_CLIENT_SECRET</code>
+              </p>
+              <p className="text-muted-foreground mt-1 text-[11px]">
+                Get these from <span className="text-foreground">Google Cloud Console → APIs & Services → Credentials</span>.
+                Use the "Connect with Google" button on the Platform Connections panel above to authorize.
+              </p>
+            </div>
+            <div className="rounded-md bg-background/60 p-3 border">
+              <p className="font-semibold text-sky-400 mb-1">▸ Twitter / X</p>
+              <p className="text-muted-foreground">
+                <code className="text-[11px]">TWITTER_BEARER_TOKEN</code> + <code className="text-[11px]">TWITTER_USER_ID</code>{" "}
+                <span className="text-[10px]">(optional)</span>
+              </p>
+              <p className="text-muted-foreground mt-1 text-[11px]">
+                Get these from <span className="text-foreground">X Developer Portal → Projects & Apps → Keys & Tokens</span>.
+                The bearer token enables read access. User ID auto-resolves if not set.
+              </p>
+            </div>
+            <div className="rounded-md bg-background/60 p-3 border">
+              <p className="font-semibold text-blue-400 mb-1">▸ Facebook</p>
+              <p className="text-muted-foreground">
+                <code className="text-[11px]">FACEBOOK_PAGE_ACCESS_TOKEN</code> + <code className="text-[11px]">FACEBOOK_PAGE_ID</code>
+              </p>
+              <p className="text-muted-foreground mt-1 text-[11px]">
+                Get these from <span className="text-foreground">Meta Developer Portal → Your App → Graph API Explorer</span>.
+                Generate a Page Access Token with <code className="text-[10px]">pages_read_engagement</code> + <code className="text-[10px]">pages_manage_metadata</code> permissions.
+              </p>
+            </div>
+            <div className="rounded-md bg-background/60 p-3 border">
+              <p className="font-semibold text-fuchsia-400 mb-1">▸ Instagram</p>
+              <p className="text-muted-foreground">
+                <code className="text-[11px]">INSTAGRAM_ACCESS_TOKEN</code> + <code className="text-[11px]">INSTAGRAM_ACCOUNT_ID</code>
+              </p>
+              <p className="text-muted-foreground mt-1 text-[11px]">
+                Get these from <span className="text-foreground">Meta Developer Portal → Instagram Graph API</span>.
+                Requires a Facebook Page linked to an Instagram Professional account.
+              </p>
+            </div>
+            <div className="rounded-md bg-background/60 p-3 border border-dashed">
+              <p className="font-semibold text-green-400 mb-1">▸ Backend Auth</p>
+              <p className="text-muted-foreground">
+                <code className="text-[11px]">API_AUTH_TOKEN</code> — random secret to protect the moderation backend API
+              </p>
+            </div>
+          </div>
+          <p className="mt-3 text-[11px] text-muted-foreground">
+            Platforms without credentials will report as "Not configured".
           </p>
         </div>
 

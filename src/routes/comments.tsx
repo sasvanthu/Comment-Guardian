@@ -73,6 +73,7 @@ function CommentsPage() {
     { key: "twitter", label: "Twitter" },
     { key: "facebook", label: "Facebook" },
     { key: "instagram", label: "Instagram" },
+    { key: "youtube", label: "YouTube" },
   ];
 
   return (

@@ -2,7 +2,10 @@
  * Social Media Comment Moderation - Backend Server
  * Express.js entry point
  */
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config(); // load local .env
+require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') }); // also load root .env
+
 
 const http = require('http');
 const express = require('express');
@@ -15,6 +18,7 @@ const ws = require('./services/wsService');
 const twitterRoutes = require('./routes/twitter');
 const facebookRoutes = require('./routes/facebook');
 const instagramRoutes = require('./routes/instagram');
+const youtubeRoutes = require('./routes/youtube');
 const aiRoutes = require('./routes/ai');
 const dashboardRoutes = require('./routes/dashboard');
 const moderationRoutes = require('./routes/moderation');
@@ -28,13 +32,13 @@ const PORT = process.env.PORT || 5000;
 // --- Security & parsing middleware ---
 app.use(helmet());
 
-// CORS: explicit allow-list from env (comma-separated). Default to no
-// cross-origin access rather than `*` so a misconfigured deploy cannot be
-// called from arbitrary websites.
-const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || '')
+// CORS: explicit allow-list from env (comma-separated). Falls back to
+// common localhost ports for development convenience.
+const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || 'http://localhost:5173,http://localhost:3000,http://localhost:4173')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
+
 app.use(
   cors({
     origin: (origin, cb) => {
@@ -72,6 +76,7 @@ app.get('/', (_req, res) => {
 app.use('/api/twitter', twitterRoutes);
 app.use('/api/facebook', facebookRoutes);
 app.use('/api/instagram', instagramRoutes);
+app.use('/api/youtube', youtubeRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/moderation', moderationRoutes);

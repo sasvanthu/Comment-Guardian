@@ -182,6 +182,24 @@ async function deleteComment(id) {
   return { id, deleted: !!res.data?.data?.deleted };
 }
 
+/** Hide a reply tweet. */
+async function hideComment(id) {
+  const api = client();
+  console.log('[twitter] hideComment', id);
+  const res = await api.put(`/tweets/${id}/hidden`, { hidden: true });
+  if (res.status >= 400) throw new Error(res.data?.detail || res.statusText);
+  return { id, hidden: true };
+}
+
+/** Unhide a reply tweet. */
+async function unhideComment(id) {
+  const api = client();
+  console.log('[twitter] unhideComment', id);
+  const res = await api.put(`/tweets/${id}/hidden`, { hidden: false });
+  if (res.status >= 400) throw new Error(res.data?.detail || res.statusText);
+  return { id, hidden: false };
+}
+
 async function bulkDelete(ids = []) {
   const results = [];
   for (const id of ids) {
@@ -194,4 +212,22 @@ async function bulkDelete(ids = []) {
   return results;
 }
 
-module.exports = { fetchComments, deleteComment, bulkDelete, normalize };
+async function banUser(id) {
+  const api = client();
+  console.log('[twitter] banUser via comment', id);
+  // 1. Get author of the tweet
+  const tweetRes = await api.get(`/tweets/${id}`, { params: { expansions: 'author_id' } });
+  if (tweetRes.status >= 400) throw new Error(tweetRes.data?.detail || tweetRes.statusText);
+  const authorId = tweetRes.data?.data?.author_id;
+  if (!authorId) throw new Error('Could not resolve author_id for tweet');
+
+  // 2. Get my user id
+  const myUserId = await resolveUserId(api);
+
+  // 3. Block the author
+  const blockRes = await api.post(`/users/${myUserId}/blocking`, { target_user_id: authorId });
+  if (blockRes.status >= 400) throw new Error(blockRes.data?.detail || blockRes.statusText);
+  return { id, banned: true, authorId };
+}
+
+module.exports = { fetchComments, deleteComment, hideComment, unhideComment, banUser, bulkDelete, normalize };

@@ -1,13 +1,12 @@
 /**
  * Platform connection status panel.
- * Lists Twitter / Facebook / Instagram, their current connection status,
- * last sync time, last error, rate-limit info, and a "Sync now" button.
- * Reads from public.platform_connections via realtime; mutations go
- * through the syncPlatform / syncAllPlatforms server functions.
+ * Lists Twitter / Facebook / Instagram / YouTube, their current connection status,
+ * last sync time, last error, rate-limit info, and action buttons.
+ * YouTube uses OAuth popup flow for connecting.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 
-import { Twitter, Facebook, Instagram, Youtube, RefreshCw, AlertCircle, Clock, CheckCircle2, Loader2, Plug, PlugZap, Unplug } from "lucide-react";
+import { Twitter, Facebook, Instagram, Youtube, RefreshCw, AlertCircle, Clock, CheckCircle2, Loader2, Plug, PlugZap, Unplug, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { syncPlatform, syncAllPlatforms } from "@/lib/platforms.functions";
@@ -26,7 +25,15 @@ import {
   testYoutubeConnection,
   syncYoutubeNow,
   disconnectYoutube,
+  connectYoutubeOAuth,
+  getYoutubeConnectionStatus,
+  type YoutubeConnectionStatus,
 } from "@/lib/integrations/youtube";
+import {
+  testTwitterConnection,
+  syncTwitterNow,
+  disconnectTwitter,
+} from "@/lib/integrations/twitter";
 
 interface ConnRow {
   id: string;
@@ -76,6 +83,7 @@ function StatusPill({ status }: { status: ConnectionStatus }) {
 export function PlatformConnections() {
   const [rows, setRows] = useState<ConnRow[]>([]);
   const [busy, setBusy] = useState<Record<string, boolean>>({});
+  const [ytStatus, setYtStatus] = useState<YoutubeConnectionStatus | null>(null);
   const sync = syncPlatform;
   const syncAll = syncAllPlatforms;
   const igTest = testInstagramConnection;
@@ -87,6 +95,20 @@ export function PlatformConnections() {
   const ytTest = testYoutubeConnection;
   const ytSync = syncYoutubeNow;
   const ytDisconnect = disconnectYoutube;
+  const twTest = testTwitterConnection;
+  const twSync = syncTwitterNow;
+  const twDisconnect = disconnectTwitter;
+
+  // Fetch YouTube OAuth connection status
+  const refreshYtStatus = useCallback(async () => {
+    try {
+      const status = await getYoutubeConnectionStatus();
+      setYtStatus(status);
+    } catch {
+      // Backend not running or endpoint not available
+      setYtStatus(null);
+    }
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -95,12 +117,13 @@ export function PlatformConnections() {
       if (alive) setRows((data ?? []) as ConnRow[]);
     };
     void reload();
+    void refreshYtStatus();
     const ch = supabase
       .channel("platform-connections-feed")
       .on("postgres_changes", { event: "*", schema: "public", table: "platform_connections" }, () => { void reload(); })
       .subscribe();
     return () => { alive = false; void supabase.removeChannel(ch); };
-  }, []);
+  }, [refreshYtStatus]);
 
   const byPlatform = useMemo(() => {
     const m: Partial<Record<PlatformId, ConnRow>> = {};
@@ -131,6 +154,55 @@ export function PlatformConnections() {
       toast.error("Sync failed", { description: (e as Error).message });
     } finally {
       setBusy((b) => ({ ...b, [platform]: false }));
+    }
+  };
+
+  // ─── Twitter ─────────────────────────────────────────────────────────
+  const doTwTest = async () => {
+    setBusy((b) => ({ ...b, twitter_test: true }));
+    try {
+      const res = await twTest();
+      if (res.ok) {
+        toast.success("Twitter connection OK", { description: `@${res.account?.username ?? res.account?.id}` });
+      } else {
+        toast.error("Twitter connection failed", { description: `${res.status}: ${res.error}` });
+      }
+    } catch (e) {
+      toast.error("Test failed", { description: (e as Error).message });
+    } finally {
+      setBusy((b) => ({ ...b, twitter_test: false }));
+    }
+  };
+
+  const doTwSync = async () => {
+    setBusy((b) => ({ ...b, twitter: true }));
+    try {
+      const res = await twSync();
+      if (res.ok) {
+        toast.success("Twitter synced", {
+          description: `${res.imported} imported, ${res.skipped} skipped (${res.comment_count} comments)`,
+        });
+      } else if (res.reason === "not_configured") {
+        toast.warning("Twitter not configured", { description: "Add TWITTER_BEARER_TOKEN to project secrets." });
+      } else {
+        toast.error("Twitter sync failed", { description: res.error ?? "Unknown error" });
+      }
+    } catch (e) {
+      toast.error("Sync failed", { description: (e as Error).message });
+    } finally {
+      setBusy((b) => ({ ...b, twitter: false }));
+    }
+  };
+
+  const doTwDisconnect = async () => {
+    setBusy((b) => ({ ...b, twitter_disc: true }));
+    try {
+      await twDisconnect();
+      toast.success("Twitter disconnected");
+    } catch (e) {
+      toast.error("Disconnect failed", { description: (e as Error).message });
+    } finally {
+      setBusy((b) => ({ ...b, twitter_disc: false }));
     }
   };
 
@@ -245,12 +317,29 @@ export function PlatformConnections() {
     }
   };
 
+  // ─── YouTube OAuth Connect ─────────────────────────────────────────────
+  const doYtConnect = async () => {
+    setBusy((b) => ({ ...b, youtube_connect: true }));
+    try {
+      await connectYoutubeOAuth();
+      toast.success("YouTube connected!", { description: "Your channel is now linked." });
+      await refreshYtStatus();
+    } catch (e) {
+      const msg = (e as Error).message;
+      if (!msg.includes("was closed")) {
+        toast.error("YouTube connection failed", { description: msg });
+      }
+    } finally {
+      setBusy((b) => ({ ...b, youtube_connect: false }));
+    }
+  };
+
   const doYtTest = async () => {
     setBusy((b) => ({ ...b, youtube_test: true }));
     try {
       const res = await ytTest();
       if (res.ok) {
-        toast.success("YouTube connection OK", { description: res.account ? `@${res.account.username}` : "Valid" });
+        toast.success("YouTube connection OK", { description: res.account ? `${res.account.username}` : "Valid" });
       } else {
         toast.error("YouTube connection failed", { description: `${res.status}: ${res.error}` });
       }
@@ -270,7 +359,7 @@ export function PlatformConnections() {
           description: `${res.imported} imported, ${res.skipped} skipped, ${res.failed} failed`,
         });
       } else if (res.reason === "not_configured") {
-        toast.warning("YouTube not configured", { description: "Add YOUTUBE_API_KEY and YOUTUBE_CHANNEL_ID to project secrets." });
+        toast.warning("YouTube not configured", { description: "Connect your YouTube channel first." });
       } else if (res.reason === "rate_limited") {
         toast.warning("YouTube rate limited", { description: "Try again later." });
       } else {
@@ -287,7 +376,9 @@ export function PlatformConnections() {
     setBusy((b) => ({ ...b, youtube_disc: true }));
     try {
       await ytDisconnect();
+      setYtStatus(null);
       toast.success("YouTube disconnected");
+      await refreshYtStatus();
     } catch (e) {
       toast.error("Disconnect failed", { description: (e as Error).message });
     } finally {
@@ -314,10 +405,12 @@ export function PlatformConnections() {
         </button>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         {PLATFORM_IDS.map((p) => {
           const row = byPlatform[p];
-          const status: ConnectionStatus = (busy[p] ? "syncing" : (row?.status ?? "disconnected")) as ConnectionStatus;
+          const isYt = p === "youtube";
+          const ytConnected = isYt && ytStatus?.connected;
+          const status: ConnectionStatus = (busy[p] ? "syncing" : ytConnected ? "connected" : (row?.status ?? "disconnected")) as ConnectionStatus;
           const { Icon, label, color } = PLATFORM_META[p];
           return (
             <div key={p} className="flex flex-col gap-3 rounded-lg border bg-background p-4">
@@ -328,6 +421,26 @@ export function PlatformConnections() {
                 </div>
                 <StatusPill status={status} />
               </div>
+
+              {/* YouTube channel info when connected via OAuth */}
+              {isYt && ytConnected && ytStatus?.channel_name && (
+                <div className="flex items-center gap-2.5 rounded-md bg-muted/50 px-3 py-2">
+                  {ytStatus.channel_avatar && (
+                    <img
+                      src={ytStatus.channel_avatar}
+                      alt=""
+                      className="h-8 w-8 rounded-full ring-2 ring-red-500/30"
+                    />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-semibold">{ytStatus.channel_name}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {ytStatus.subscriber_count ? `${Number(ytStatus.subscriber_count).toLocaleString()} subscribers` : ""}
+                      {ytStatus.video_count ? ` · ${ytStatus.video_count} videos` : ""}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <dl className="space-y-1 text-[11px] text-muted-foreground">
                 <div className="flex justify-between"><dt>Last sync</dt><dd className="text-foreground">{relTime(row?.last_sync_at ?? null)}</dd></div>
@@ -347,27 +460,49 @@ export function PlatformConnections() {
               )}
 
               <div className="mt-auto flex flex-col gap-1.5">
+                {/* YouTube: Show "Connect with Google" when not connected */}
+                {isYt && !ytConnected && (
+                  <button
+                    onClick={() => void doYtConnect()}
+                    disabled={busy.youtube_connect}
+                    className="inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-xs font-semibold text-white shadow-sm hover:opacity-90 disabled:opacity-50"
+                    style={{
+                      background: "linear-gradient(135deg, #ea4335 0%, #ff6d00 50%, #fbbc05 100%)",
+                    }}
+                  >
+                    {busy.youtube_connect ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <LogIn className="h-3.5 w-3.5" />
+                    )}
+                    {busy.youtube_connect ? "Connecting…" : "Connect with Google"}
+                  </button>
+                )}
+
+                {/* Sync button */}
                 <button
-                  onClick={() => void (p === "instagram" ? doIgSync() : p === "facebook" ? doFbSync() : p === "youtube" ? doYtSync() : doSync(p))}
+                  onClick={() => void (p === "instagram" ? doIgSync() : p === "facebook" ? doFbSync() : p === "youtube" ? doYtSync() : p === "twitter" ? doTwSync() : doSync(p))}
                   disabled={busy[p]}
                   className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 >
                   <RefreshCw className={`h-3.5 w-3.5 ${busy[p] ? "animate-spin" : ""}`} />
                   {busy[p] ? "Syncing…" : "Sync now"}
                 </button>
-                {(p === "instagram" || p === "facebook" || p === "youtube") && (
+
+                {/* Test & Disconnect row */}
+                {(p === "instagram" || p === "facebook" || p === "youtube" || p === "twitter") && (
                   <div className="flex gap-1.5">
                     <button
-                      onClick={() => void (p === "instagram" ? doIgTest() : p === "facebook" ? doFbTest() : doYtTest())}
-                      disabled={p === "instagram" ? busy.instagram_test : p === "facebook" ? busy.facebook_test : busy.youtube_test}
+                      onClick={() => void (p === "instagram" ? doIgTest() : p === "facebook" ? doFbTest() : p === "twitter" ? doTwTest() : doYtTest())}
+                      disabled={p === "instagram" ? busy.instagram_test : p === "facebook" ? busy.facebook_test : p === "twitter" ? busy.twitter_test : busy.youtube_test}
                       className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border bg-secondary px-2 py-1.5 text-[11px] font-semibold hover:bg-secondary/80 disabled:opacity-50"
                     >
                       <PlugZap className="h-3 w-3" />
-                      {(p === "instagram" ? busy.instagram_test : p === "facebook" ? busy.facebook_test : busy.youtube_test) ? "Testing…" : "Test"}
+                      {(p === "instagram" ? busy.instagram_test : p === "facebook" ? busy.facebook_test : p === "twitter" ? busy.twitter_test : busy.youtube_test) ? "Testing…" : "Test"}
                     </button>
                     <button
-                      onClick={() => void (p === "instagram" ? doIgDisconnect() : p === "facebook" ? doFbDisconnect() : doYtDisconnect())}
-                      disabled={p === "instagram" ? busy.instagram_disc : p === "facebook" ? busy.facebook_disc : busy.youtube_disc}
+                      onClick={() => void (p === "instagram" ? doIgDisconnect() : p === "facebook" ? doFbDisconnect() : p === "twitter" ? doTwDisconnect() : doYtDisconnect())}
+                      disabled={p === "instagram" ? busy.instagram_disc : p === "facebook" ? busy.facebook_disc : p === "twitter" ? busy.twitter_disc : busy.youtube_disc}
                       className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border px-2 py-1.5 text-[11px] font-semibold text-muted-foreground hover:bg-muted disabled:opacity-50"
                     >
                       <Unplug className="h-3 w-3" />

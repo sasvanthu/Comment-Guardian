@@ -33,4 +33,10 @@ router.post('/testYoutubeConnection', c.testYoutubeConnection);
 router.post('/syncYoutubeNow', c.syncYoutubeNow);
 router.post('/disconnectYoutube', c.disconnectYoutube);
 
+router.post('/testTwitterConnection', c.testTwitterConnection);
+router.post('/syncTwitterNow', c.syncTwitterNow);
+router.post('/disconnectTwitter', c.disconnectTwitter);
+
+router.post('/executePlatformActions', c.executePlatformActions);
+
 module.exports = router;

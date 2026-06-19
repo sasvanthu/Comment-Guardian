@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Trash2, Sparkles, ExternalLink, Languages, ShieldAlert, Ban, Loader2, Brain, ShieldCheck } from "lucide-react";
+import { Trash2, Sparkles, ExternalLink, Languages, ShieldAlert, Ban, Loader2, Brain, ShieldCheck, MessageSquareReply, EyeOff, Eye, ShieldBan, Send, X } from "lucide-react";
 
 import type { Comment, Category, Decision } from "@/lib/types";
 import { PlatformBadge } from "./PlatformBadge";
@@ -10,6 +10,13 @@ import { analyzeToxic } from "@/lib/ai-research.functions";
 import { detectSpamScam } from "@/lib/spam-detect.functions";
 import { loadPrefs } from "@/lib/storage";
 import { toast } from "sonner";
+import {
+  replyToYoutubeComment,
+  moderateYoutubeComment,
+  banYoutubeUser,
+  markYoutubeCommentAsSpam,
+  approveYoutubeComment,
+} from "@/lib/integrations/youtube";
 
 type AnalyzeResult = Awaited<ReturnType<typeof analyzeToxic>>;
 type SpamResult = Awaited<ReturnType<typeof detectSpamScam>>["results"][number];
@@ -53,6 +60,12 @@ export function CommentCard({
   const [analyzing, setAnalyzing] = useState(false);
   const [spamResult, setSpamResult] = useState<SpamResult | null>(null);
   const [scanningSpam, setScanningSpam] = useState(false);
+  // YouTube-specific state
+  const isYoutube = c.platform === "youtube";
+  const [showReply, setShowReply] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const [replying, setReplying] = useState(false);
+  const [ytActing, setYtActing] = useState<string | null>(null);
   const initials = c.author.split(" ").map((s) => s[0]).slice(0, 2).join("");
   const barColor = c.toxicityScore >= 70 ? "bg-toxic" : c.toxicityScore >= 40 ? "bg-neutral-warn" : "bg-positive";
   const sentBar = c.sentimentScore >= 60 ? "bg-positive" : c.sentimentScore >= 35 ? "bg-neutral-warn" : "bg-toxic";
@@ -219,6 +232,131 @@ export function CommentCard({
               </span>
             )}
           </div>
+
+          {/* ─── YouTube-Specific Actions ─────────────────────────── */}
+          {isYoutube && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <button
+                onClick={() => setShowReply(!showReply)}
+                className="inline-flex items-center gap-1 rounded-md border border-sky-500/40 bg-sky-500/10 px-2 py-1 text-[11px] font-medium text-sky-400 hover:bg-sky-500/20"
+              >
+                <MessageSquareReply className="h-3 w-3" /> Reply
+              </button>
+              <button
+                onClick={async () => {
+                  setYtActing("hide");
+                  try {
+                    await moderateYoutubeComment(c.id, "rejected");
+                    toast.success("Comment hidden on YouTube");
+                  } catch (e) { toast.error((e as Error).message); }
+                  finally { setYtActing(null); }
+                }}
+                disabled={ytActing === "hide"}
+                className="inline-flex items-center gap-1 rounded-md border border-orange-500/40 bg-orange-500/10 px-2 py-1 text-[11px] font-medium text-orange-400 hover:bg-orange-500/20 disabled:opacity-50"
+              >
+                {ytActing === "hide" ? <Loader2 className="h-3 w-3 animate-spin" /> : <EyeOff className="h-3 w-3" />}
+                Hide
+              </button>
+              <button
+                onClick={async () => {
+                  setYtActing("publish");
+                  try {
+                    await approveYoutubeComment(c.id);
+                    toast.success("Comment published on YouTube");
+                  } catch (e) { toast.error((e as Error).message); }
+                  finally { setYtActing(null); }
+                }}
+                disabled={ytActing === "publish"}
+                className="inline-flex items-center gap-1 rounded-md border border-positive/40 bg-positive/10 px-2 py-1 text-[11px] font-medium text-positive hover:bg-positive/20 disabled:opacity-50"
+              >
+                {ytActing === "publish" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Eye className="h-3 w-3" />}
+                Publish
+              </button>
+              <button
+                onClick={async () => {
+                  setYtActing("spam");
+                  try {
+                    await markYoutubeCommentAsSpam(c.id);
+                    toast.success("Marked as spam on YouTube");
+                  } catch (e) { toast.error((e as Error).message); }
+                  finally { setYtActing(null); }
+                }}
+                disabled={ytActing === "spam"}
+                className="inline-flex items-center gap-1 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1 text-[11px] font-medium text-amber-400 hover:bg-amber-500/20 disabled:opacity-50"
+              >
+                {ytActing === "spam" ? <Loader2 className="h-3 w-3 animate-spin" /> : <ShieldBan className="h-3 w-3" />}
+                Spam
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm("Ban this user from your YouTube channel? This cannot be undone.")) return;
+                  setYtActing("ban");
+                  try {
+                    await banYoutubeUser(c.id);
+                    toast.success("User banned from your YouTube channel");
+                  } catch (e) { toast.error((e as Error).message); }
+                  finally { setYtActing(null); }
+                }}
+                disabled={ytActing === "ban"}
+                className="inline-flex items-center gap-1 rounded-md border border-red-600/40 bg-red-600/10 px-2 py-1 text-[11px] font-medium text-red-400 hover:bg-red-600/20 disabled:opacity-50"
+              >
+                {ytActing === "ban" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Ban className="h-3 w-3" />}
+                Ban on YT
+              </button>
+            </div>
+          )}
+
+          {/* ─── Reply Input ──────────────────────────────────────── */}
+          {isYoutube && showReply && (
+            <div className="mt-2 flex gap-2">
+              <input
+                type="text"
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder="Write a reply…"
+                className="flex-1 rounded-md border bg-input px-3 py-1.5 text-sm outline-none placeholder:text-muted-foreground focus:border-primary"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && replyText.trim()) {
+                    e.preventDefault();
+                    (async () => {
+                      setReplying(true);
+                      try {
+                        await replyToYoutubeComment(c.id, replyText.trim());
+                        toast.success("Reply posted on YouTube!");
+                        setReplyText("");
+                        setShowReply(false);
+                      } catch (err) { toast.error((err as Error).message); }
+                      finally { setReplying(false); }
+                    })();
+                  }
+                }}
+              />
+              <button
+                onClick={async () => {
+                  if (!replyText.trim()) return;
+                  setReplying(true);
+                  try {
+                    await replyToYoutubeComment(c.id, replyText.trim());
+                    toast.success("Reply posted on YouTube!");
+                    setReplyText("");
+                    setShowReply(false);
+                  } catch (err) { toast.error((err as Error).message); }
+                  finally { setReplying(false); }
+                }}
+                disabled={replying || !replyText.trim()}
+                className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              >
+                {replying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                Send
+              </button>
+              <button
+                onClick={() => { setShowReply(false); setReplyText(""); }}
+                className="inline-flex items-center rounded-md border px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
 
           {aiResult && (
             <div className="mt-3 rounded-lg border border-primary/30 bg-primary/5 p-3">

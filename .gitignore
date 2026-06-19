@@ -43,3 +43,8 @@ lerna-debug.log*
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
+
+# YouTube OAuth tokens (auto-generated, contains secrets)
+youtube_oauth_tokens.json
+moderation-backend/youtube_oauth_tokens.json
+youtube_auth_state.json

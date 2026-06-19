@@ -2,6 +2,7 @@ const ai = require('../services/aiService');
 const twitter = require('../services/twitterService');
 const facebook = require('../services/facebookService');
 const instagram = require('../services/instagramService');
+const youtube = require('../services/youtubeService');
 
 exports.analyze = async (req, res, next) => {
   try {
@@ -33,6 +34,7 @@ exports.autoModerate = async (req, res, next) => {
       if (platform === 'twitter') comments = await twitter.fetchComments();
       else if (platform === 'facebook') comments = await facebook.fetchComments();
       else if (platform === 'instagram') comments = await instagram.fetchComments();
+      else if (platform === 'youtube') comments = await youtube.fetchComments();
       else return res.status(400).json({ error: 'platform or comments[] is required' });
     }
 
@@ -50,6 +52,7 @@ exports.autoModerate = async (req, res, next) => {
         if (c.platform === 'twitter') result = await twitter.deleteComment(c.id);
         else if (c.platform === 'facebook') result = await facebook.deleteComment(c.id);
         else if (c.platform === 'instagram') result = await instagram.deleteComment(c.id);
+        else if (c.platform === 'youtube') result = await youtube.deleteComment(c.id);
         else result = { id: c.id, deleted: false, error: 'unknown platform' };
         deletions.push({ ...result, platform: c.platform, reason: a.reason, score: a.score });
       } catch (e) {
