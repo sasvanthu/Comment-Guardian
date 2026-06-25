@@ -1,12 +1,12 @@
 /**
  * Platform connection status panel.
- * Lists Twitter / Facebook / Instagram / YouTube, their current connection status,
+ * Lists all 6 supported platforms, their current connection status,
  * last sync time, last error, rate-limit info, and action buttons.
  * YouTube uses OAuth popup flow for connecting.
  */
 import { useEffect, useMemo, useState, useCallback } from "react";
 
-import { Twitter, Facebook, Instagram, Youtube, RefreshCw, AlertCircle, Clock, CheckCircle2, Loader2, Plug, PlugZap, Unplug, LogIn } from "lucide-react";
+import { Twitter, Facebook, Instagram, Youtube, Linkedin, RefreshCw, AlertCircle, Clock, CheckCircle2, Loader2, Plug, PlugZap, Unplug, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { syncPlatform, syncAllPlatforms } from "@/lib/platforms.functions";
@@ -34,6 +34,25 @@ import {
   syncTwitterNow,
   disconnectTwitter,
 } from "@/lib/integrations/twitter";
+import {
+  testLinkedinConnection,
+  syncLinkedinNow,
+  disconnectLinkedin,
+} from "@/lib/integrations/linkedin";
+import {
+  testPinterestConnection,
+  syncPinterestNow,
+  disconnectPinterest,
+} from "@/lib/integrations/pinterest";
+
+/* Simple Pinterest SVG icon since lucide-react doesn't have one */
+function PinterestIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z" />
+    </svg>
+  );
+}
 
 interface ConnRow {
   id: string;
@@ -48,10 +67,12 @@ interface ConnRow {
 }
 
 const PLATFORM_META: Record<PlatformId, { label: string; Icon: typeof Twitter; color: string }> = {
-  twitter:   { label: "Twitter / X", Icon: Twitter,   color: "text-sky-400" },
-  facebook:  { label: "Facebook",    Icon: Facebook,  color: "text-blue-500" },
-  instagram: { label: "Instagram",   Icon: Instagram, color: "text-fuchsia-400" },
-  youtube:   { label: "YouTube",     Icon: Youtube,   color: "text-red-500" },
+  facebook:  { label: "Facebook",    Icon: Facebook,       color: "text-blue-500" },
+  instagram: { label: "Instagram",   Icon: Instagram,      color: "text-fuchsia-400" },
+  youtube:   { label: "YouTube",     Icon: Youtube,        color: "text-red-500" },
+  linkedin:  { label: "LinkedIn",    Icon: Linkedin,       color: "text-blue-400" },
+  twitter:   { label: "Twitter / X", Icon: Twitter,        color: "text-sky-400" },
+  pinterest: { label: "Pinterest",   Icon: PinterestIcon as unknown as typeof Twitter, color: "text-red-400" },
 };
 
 function relTime(iso: string | null): string {
@@ -80,24 +101,24 @@ function StatusPill({ status }: { status: ConnectionStatus }) {
   );
 }
 
+// Map of platform -> { test, sync, disconnect } functions
+const platformActions: Record<PlatformId, {
+  test: () => Promise<any>;
+  sync: () => Promise<any>;
+  disconnect: () => Promise<any>;
+}> = {
+  instagram:  { test: testInstagramConnection,  sync: syncInstagramNow,  disconnect: disconnectInstagram },
+  facebook:   { test: testFacebookConnection,   sync: syncFacebookNow,   disconnect: disconnectFacebook },
+  youtube:    { test: testYoutubeConnection,     sync: syncYoutubeNow,    disconnect: disconnectYoutube },
+  twitter:    { test: testTwitterConnection,     sync: syncTwitterNow,    disconnect: disconnectTwitter },
+  linkedin:   { test: testLinkedinConnection,    sync: syncLinkedinNow,   disconnect: disconnectLinkedin },
+  pinterest:  { test: testPinterestConnection,   sync: syncPinterestNow,  disconnect: disconnectPinterest },
+};
+
 export function PlatformConnections() {
   const [rows, setRows] = useState<ConnRow[]>([]);
   const [busy, setBusy] = useState<Record<string, boolean>>({});
   const [ytStatus, setYtStatus] = useState<YoutubeConnectionStatus | null>(null);
-  const sync = syncPlatform;
-  const syncAll = syncAllPlatforms;
-  const igTest = testInstagramConnection;
-  const igSync = syncInstagramNow;
-  const igDisconnect = disconnectInstagram;
-  const fbTest = testFacebookConnection;
-  const fbSync = syncFacebookNow;
-  const fbDisconnect = disconnectFacebook;
-  const ytTest = testYoutubeConnection;
-  const ytSync = syncYoutubeNow;
-  const ytDisconnect = disconnectYoutube;
-  const twTest = testTwitterConnection;
-  const twSync = syncTwitterNow;
-  const twDisconnect = disconnectTwitter;
 
   // Fetch YouTube OAuth connection status
   const refreshYtStatus = useCallback(async () => {
@@ -105,7 +126,6 @@ export function PlatformConnections() {
       const status = await getYoutubeConnectionStatus();
       setYtStatus(status);
     } catch {
-      // Backend not running or endpoint not available
       setYtStatus(null);
     }
   }, []);
@@ -131,22 +151,42 @@ export function PlatformConnections() {
     return m;
   }, [rows]);
 
+  // ─── Generic platform handlers ─────────────────────────────────────
+  const doTest = async (platform: PlatformId) => {
+    const key = `${platform}_test`;
+    setBusy((b) => ({ ...b, [key]: true }));
+    try {
+      const res = await platformActions[platform].test();
+      if (res.ok) {
+        toast.success(`${PLATFORM_META[platform].label} connection OK`, {
+          description: res.account?.username ? `@${res.account.username}` : res.account?.name ?? "Valid",
+        });
+      } else {
+        toast.error(`${PLATFORM_META[platform].label} connection failed`, {
+          description: `${res.status}: ${res.error}`,
+        });
+      }
+    } catch (e) {
+      toast.error("Test failed", { description: (e as Error).message });
+    } finally {
+      setBusy((b) => ({ ...b, [key]: false }));
+    }
+  };
+
   const doSync = async (platform: PlatformId) => {
     setBusy((b) => ({ ...b, [platform]: true }));
     try {
-      const res = await sync({ data: { platform } });
-      if (res.reason === "ok") {
+      const res = await platformActions[platform].sync();
+      if (res.ok) {
         toast.success(`${PLATFORM_META[platform].label} synced`, {
-          description: `${res.inserted} new of ${res.fetched} fetched`,
+          description: `${res.imported} imported, ${res.skipped} skipped (${res.comment_count} comments)`,
         });
       } else if (res.reason === "not_configured") {
         toast.warning(`${PLATFORM_META[platform].label} not configured`, {
-          description: "Add the platform API credentials to your project secrets.",
+          description: `Add the ${PLATFORM_META[platform].label} API credentials to your project secrets.`,
         });
       } else if (res.reason === "rate_limited") {
-        toast.warning(`${PLATFORM_META[platform].label} rate limited`, {
-          description: res.rate_limit_reset_at ? `Resets ${relTime(res.rate_limit_reset_at)}` : "Try again later.",
-        });
+        toast.warning(`${PLATFORM_META[platform].label} rate limited`, { description: "Try again later." });
       } else {
         toast.error(`${PLATFORM_META[platform].label} sync failed`, { description: res.error ?? "Unknown error" });
       }
@@ -157,163 +197,20 @@ export function PlatformConnections() {
     }
   };
 
-  // ─── Twitter ─────────────────────────────────────────────────────────
-  const doTwTest = async () => {
-    setBusy((b) => ({ ...b, twitter_test: true }));
+  const doDisconnect = async (platform: PlatformId) => {
+    const key = `${platform}_disc`;
+    setBusy((b) => ({ ...b, [key]: true }));
     try {
-      const res = await twTest();
-      if (res.ok) {
-        toast.success("Twitter connection OK", { description: `@${res.account?.username ?? res.account?.id}` });
-      } else {
-        toast.error("Twitter connection failed", { description: `${res.status}: ${res.error}` });
+      await platformActions[platform].disconnect();
+      if (platform === "youtube") {
+        setYtStatus(null);
+        await refreshYtStatus();
       }
-    } catch (e) {
-      toast.error("Test failed", { description: (e as Error).message });
-    } finally {
-      setBusy((b) => ({ ...b, twitter_test: false }));
-    }
-  };
-
-  const doTwSync = async () => {
-    setBusy((b) => ({ ...b, twitter: true }));
-    try {
-      const res = await twSync();
-      if (res.ok) {
-        toast.success("Twitter synced", {
-          description: `${res.imported} imported, ${res.skipped} skipped (${res.comment_count} comments)`,
-        });
-      } else if (res.reason === "not_configured") {
-        toast.warning("Twitter not configured", { description: "Add TWITTER_BEARER_TOKEN to project secrets." });
-      } else {
-        toast.error("Twitter sync failed", { description: res.error ?? "Unknown error" });
-      }
-    } catch (e) {
-      toast.error("Sync failed", { description: (e as Error).message });
-    } finally {
-      setBusy((b) => ({ ...b, twitter: false }));
-    }
-  };
-
-  const doTwDisconnect = async () => {
-    setBusy((b) => ({ ...b, twitter_disc: true }));
-    try {
-      await twDisconnect();
-      toast.success("Twitter disconnected");
+      toast.success(`${PLATFORM_META[platform].label} disconnected`);
     } catch (e) {
       toast.error("Disconnect failed", { description: (e as Error).message });
     } finally {
-      setBusy((b) => ({ ...b, twitter_disc: false }));
-    }
-  };
-
-  const doSyncAll = async () => {
-    setBusy({ twitter: true, facebook: true, instagram: true, youtube: true });
-    try {
-      const { results } = await syncAll();
-      const ok = results.filter((r: any) => r.reason === "ok").length;
-      toast.success(`Synced ${ok}/${results.length} platforms`);
-    } catch (e) {
-      toast.error("Sync all failed", { description: (e as Error).message });
-    } finally {
-      setBusy({});
-    }
-  };
-
-  const doIgTest = async () => {
-    setBusy((b) => ({ ...b, instagram_test: true }));
-    try {
-      const res = await igTest();
-      if (res.ok) {
-        toast.success("Instagram connection OK", { description: `@${res.account.username} (id ${res.account.id})` });
-      } else {
-        toast.error("Instagram connection failed", { description: `${res.status}: ${res.error}` });
-      }
-    } catch (e) {
-      toast.error("Test failed", { description: (e as Error).message });
-    } finally {
-      setBusy((b) => ({ ...b, instagram_test: false }));
-    }
-  };
-
-  const doIgSync = async () => {
-    setBusy((b) => ({ ...b, instagram: true }));
-    try {
-      const res = await igSync();
-      if (res.ok) {
-        toast.success("Instagram synced", {
-          description: `${res.imported} imported, ${res.skipped} skipped, ${res.failed} failed (${res.comment_count} comments across ${res.media_count} posts)`,
-        });
-      } else if (res.reason === "not_configured") {
-        toast.warning("Instagram not configured", { description: "Add INSTAGRAM_ACCESS_TOKEN and INSTAGRAM_ACCOUNT_ID to project secrets." });
-      } else if (res.reason === "rate_limited") {
-        toast.warning("Instagram rate limited", { description: "Try again later." });
-      } else {
-        toast.error("Instagram sync failed", { description: res.error ?? "Unknown error" });
-      }
-    } catch (e) {
-      toast.error("Sync failed", { description: (e as Error).message });
-    } finally {
-      setBusy((b) => ({ ...b, instagram: false }));
-    }
-  };
-
-  const doIgDisconnect = async () => {
-    setBusy((b) => ({ ...b, instagram_disc: true }));
-    try {
-      await igDisconnect();
-      toast.success("Instagram disconnected");
-    } catch (e) {
-      toast.error("Disconnect failed", { description: (e as Error).message });
-    } finally {
-      setBusy((b) => ({ ...b, instagram_disc: false }));
-    }
-  };
-
-  const doFbTest = async () => {
-    setBusy((b) => ({ ...b, facebook_test: true }));
-    try {
-      const res = await fbTest();
-      if (res.ok) {
-        toast.success("Facebook connection OK", { description: `${res.account.name} (id ${res.account.id})` });
-      } else {
-        toast.error("Facebook connection failed", { description: `${res.status}: ${res.error}` });
-      }
-    } catch (e) {
-      toast.error("Test failed", { description: (e as Error).message });
-    } finally {
-      setBusy((b) => ({ ...b, facebook_test: false }));
-    }
-  };
-
-  const doFbSync = async () => {
-    setBusy((b) => ({ ...b, facebook: true }));
-    try {
-      const res = await fbSync();
-      if (res.ok) {
-        toast.success("Facebook synced", {
-          description: `${res.imported} imported, ${res.skipped} skipped, ${res.failed} failed (${res.comment_count} comments)`,
-        });
-      } else if (res.reason === "not_configured") {
-        toast.warning("Facebook not configured", { description: "Add FACEBOOK_PAGE_ACCESS_TOKEN and FACEBOOK_PAGE_ID to project secrets." });
-      } else {
-        toast.error("Facebook sync failed", { description: res.error ?? "Unknown error" });
-      }
-    } catch (e) {
-      toast.error("Sync failed", { description: (e as Error).message });
-    } finally {
-      setBusy((b) => ({ ...b, facebook: false }));
-    }
-  };
-
-  const doFbDisconnect = async () => {
-    setBusy((b) => ({ ...b, facebook_disc: true }));
-    try {
-      await fbDisconnect();
-      toast.success("Facebook disconnected");
-    } catch (e) {
-      toast.error("Disconnect failed", { description: (e as Error).message });
-    } finally {
-      setBusy((b) => ({ ...b, facebook_disc: false }));
+      setBusy((b) => ({ ...b, [key]: false }));
     }
   };
 
@@ -334,55 +231,18 @@ export function PlatformConnections() {
     }
   };
 
-  const doYtTest = async () => {
-    setBusy((b) => ({ ...b, youtube_test: true }));
+  const doSyncAll = async () => {
+    const busyMap: Record<string, boolean> = {};
+    PLATFORM_IDS.forEach((p) => { busyMap[p] = true; });
+    setBusy(busyMap);
     try {
-      const res = await ytTest();
-      if (res.ok) {
-        toast.success("YouTube connection OK", { description: res.account ? `${res.account.username}` : "Valid" });
-      } else {
-        toast.error("YouTube connection failed", { description: `${res.status}: ${res.error}` });
-      }
+      const { results } = await syncAllPlatforms();
+      const ok = results.filter((r: any) => r.reason === "ok").length;
+      toast.success(`Synced ${ok}/${results.length} platforms`);
     } catch (e) {
-      toast.error("Test failed", { description: (e as Error).message });
+      toast.error("Sync all failed", { description: (e as Error).message });
     } finally {
-      setBusy((b) => ({ ...b, youtube_test: false }));
-    }
-  };
-
-  const doYtSync = async () => {
-    setBusy((b) => ({ ...b, youtube: true }));
-    try {
-      const res = await ytSync();
-      if (res.ok) {
-        toast.success("YouTube synced", {
-          description: `${res.imported} imported, ${res.skipped} skipped, ${res.failed} failed`,
-        });
-      } else if (res.reason === "not_configured") {
-        toast.warning("YouTube not configured", { description: "Connect your YouTube channel first." });
-      } else if (res.reason === "rate_limited") {
-        toast.warning("YouTube rate limited", { description: "Try again later." });
-      } else {
-        toast.error("YouTube sync failed", { description: res.error ?? "Unknown error" });
-      }
-    } catch (e) {
-      toast.error("Sync failed", { description: (e as Error).message });
-    } finally {
-      setBusy((b) => ({ ...b, youtube: false }));
-    }
-  };
-
-  const doYtDisconnect = async () => {
-    setBusy((b) => ({ ...b, youtube_disc: true }));
-    try {
-      await ytDisconnect();
-      setYtStatus(null);
-      toast.success("YouTube disconnected");
-      await refreshYtStatus();
-    } catch (e) {
-      toast.error("Disconnect failed", { description: (e as Error).message });
-    } finally {
-      setBusy((b) => ({ ...b, youtube_disc: false }));
+      setBusy({});
     }
   };
 
@@ -405,7 +265,7 @@ export function PlatformConnections() {
         </button>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {PLATFORM_IDS.map((p) => {
           const row = byPlatform[p];
           const isYt = p === "youtube";
@@ -481,7 +341,7 @@ export function PlatformConnections() {
 
                 {/* Sync button */}
                 <button
-                  onClick={() => void (p === "instagram" ? doIgSync() : p === "facebook" ? doFbSync() : p === "youtube" ? doYtSync() : p === "twitter" ? doTwSync() : doSync(p))}
+                  onClick={() => void doSync(p)}
                   disabled={busy[p]}
                   className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 >
@@ -490,26 +350,24 @@ export function PlatformConnections() {
                 </button>
 
                 {/* Test & Disconnect row */}
-                {(p === "instagram" || p === "facebook" || p === "youtube" || p === "twitter") && (
-                  <div className="flex gap-1.5">
-                    <button
-                      onClick={() => void (p === "instagram" ? doIgTest() : p === "facebook" ? doFbTest() : p === "twitter" ? doTwTest() : doYtTest())}
-                      disabled={p === "instagram" ? busy.instagram_test : p === "facebook" ? busy.facebook_test : p === "twitter" ? busy.twitter_test : busy.youtube_test}
-                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border bg-secondary px-2 py-1.5 text-[11px] font-semibold hover:bg-secondary/80 disabled:opacity-50"
-                    >
-                      <PlugZap className="h-3 w-3" />
-                      {(p === "instagram" ? busy.instagram_test : p === "facebook" ? busy.facebook_test : p === "twitter" ? busy.twitter_test : busy.youtube_test) ? "Testing…" : "Test"}
-                    </button>
-                    <button
-                      onClick={() => void (p === "instagram" ? doIgDisconnect() : p === "facebook" ? doFbDisconnect() : p === "twitter" ? doTwDisconnect() : doYtDisconnect())}
-                      disabled={p === "instagram" ? busy.instagram_disc : p === "facebook" ? busy.facebook_disc : p === "twitter" ? busy.twitter_disc : busy.youtube_disc}
-                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border px-2 py-1.5 text-[11px] font-semibold text-muted-foreground hover:bg-muted disabled:opacity-50"
-                    >
-                      <Unplug className="h-3 w-3" />
-                      Disconnect
-                    </button>
-                  </div>
-                )}
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => void doTest(p)}
+                    disabled={busy[`${p}_test`]}
+                    className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border bg-secondary px-2 py-1.5 text-[11px] font-semibold hover:bg-secondary/80 disabled:opacity-50"
+                  >
+                    <PlugZap className="h-3 w-3" />
+                    {busy[`${p}_test`] ? "Testing…" : "Test"}
+                  </button>
+                  <button
+                    onClick={() => void doDisconnect(p)}
+                    disabled={busy[`${p}_disc`]}
+                    className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border px-2 py-1.5 text-[11px] font-semibold text-muted-foreground hover:bg-muted disabled:opacity-50"
+                  >
+                    <Unplug className="h-3 w-3" />
+                    Disconnect
+                  </button>
+                </div>
               </div>
             </div>
           );

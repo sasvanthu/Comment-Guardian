@@ -1,6 +1,6 @@
-# Comment Guardian — Platform API Integration Guide
+# Trustlens — Platform API Integration Guide
 
-A complete, step-by-step guide to connecting **YouTube**, **Instagram**, **Facebook**, and **Twitter / X** to Comment Guardian for automated comment moderation.
+A complete, step-by-step guide to connecting **Facebook**, **Instagram**, **YouTube**, **LinkedIn**, **Twitter / X**, and **Pinterest** to Trustlens for automated comment moderation.
 
 ---
 
@@ -12,10 +12,12 @@ A complete, step-by-step guide to connecting **YouTube**, **Instagram**, **Faceb
 4. [Instagram (Graph API)](#2-instagram-graph-api)
 5. [Facebook (Page Graph API)](#3-facebook-page-graph-api)
 6. [Twitter / X (API v2)](#4-twitter--x-api-v2)
-7. [Common Integration Flow](#common-integration-flow)
-8. [Environment Variables Reference](#environment-variables-reference)
-9. [Testing Your Connections](#testing-your-connections)
-10. [Troubleshooting](#troubleshooting)
+7. [LinkedIn (Community Management API)](#5-linkedin-community-management-api)
+8. [Pinterest (API v5)](#6-pinterest-api-v5)
+9. [Common Integration Flow](#common-integration-flow)
+10. [Environment Variables Reference](#environment-variables-reference)
+11. [Testing Your Connections](#testing-your-connections)
+12. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -42,6 +44,8 @@ graph TB
         IG["Instagram Graph API v20.0"]
         FB["Facebook Graph API v20.0"]
         TW["Twitter API v2"]
+        LI["LinkedIn Community Mgmt API"]
+        PI["Pinterest API v5"]
     end
 
     subgraph DB["Database"]
@@ -49,7 +53,7 @@ graph TB
     end
 
     UI --> IC --> RPC --> CTRL --> SVC
-    SVC --> YT & IG & FB & TW
+    SVC --> YT & IG & FB & TW & LI & PI
     SVC --> MOD --> SB
     SVC --> TS
     SVC --> SB
@@ -77,11 +81,11 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ```bash
 # Terminal 1: Frontend dev server
-cd Comment-Guardian
+cd Trustlens
 npm run dev
 
 # Terminal 2: Moderation backend
-cd Comment-Guardian/moderation-backend
+cd Trustlens/moderation-backend
 npm start
 ```
 
@@ -131,7 +135,7 @@ YOUTUBE_OAUTH_REDIRECT_URI=http://localhost:5000/api/youtube/oauth/callback
 
 ### Step 5: Connect in the App
 
-1. Go to **Settings** in Comment Guardian
+1. Go to **Settings** in Trustlens
 2. In the **YouTube** card, click **"Connect with Google"**
 3. A popup opens → sign in with your Google account → authorize access
 4. The popup auto-closes and YouTube shows as **Connected** with your channel info
@@ -302,7 +306,7 @@ Twitter uses **Bearer Token** authentication with the v2 API.
 > [!NOTE]
 > The **Free** tier gives 1,500 tweets/month read access.
 > The **Basic** tier ($100/month) gives 10,000 tweets/month + full search.
-> Comment Guardian works with both tiers.
+> Trustlens works with both tiers.
 
 ### Step 2: Generate Bearer Token
 
@@ -331,7 +335,7 @@ Twitter doesn't have "comments" per se — replies to your tweets are the equiva
 1. The service resolves your user ID
 2. Fetches your recent original tweets (excluding replies/retweets)
 3. For each tweet, searches for replies using `conversation_id`
-4. Normalizes everything into Comment Guardian's unified comment format
+4. Normalizes everything into Trustlens's unified comment format
 
 ### Capabilities
 
@@ -346,9 +350,107 @@ Twitter doesn't have "comments" per se — replies to your tweets are the equiva
 
 ---
 
+## 5. LinkedIn (Community Management API)
+
+LinkedIn uses the **Community Management API** with an **OAuth 2.0 Access Token** to manage organization page post comments.
+
+### Step 1: Prerequisites
+
+- A **LinkedIn Company/Organization Page** you admin
+- A **LinkedIn Developer** account
+
+### Step 2: Create LinkedIn App
+
+1. Go to [LinkedIn Developer Portal](https://www.linkedin.com/developers/apps)
+2. Click **Create app**
+3. Fill in app name, LinkedIn Page, and privacy policy URL
+4. Under **Products**, request access to **Community Management API**
+
+> [!NOTE]
+> Community Management API access requires LinkedIn approval. For development, use the **Sign In with LinkedIn** product which is auto-approved, then request the Community Management API.
+
+### Step 3: Generate Access Token
+
+1. In your app settings, go to **Auth**
+2. Note the **Client ID** and **Client Secret**
+3. Use the OAuth 2.0 Authorization Code flow to get an access token with these scopes:
+   - `r_organization_social` (read org posts/comments)
+   - `w_organization_social` (write: delete comments, reply)
+4. Use the [LinkedIn Token Generator](https://www.linkedin.com/developers/tools/oauth) or implement OAuth flow
+
+> [!WARNING]
+> LinkedIn access tokens expire in **60 days**. You'll need to re-authorize periodically.
+
+### Step 4: Get Organization ID
+
+1. Go to your Company Page on LinkedIn
+2. The Organization ID is in the URL: `linkedin.com/company/ORGANIZATION_ID`
+3. Or use the API: `GET /v2/organizationalEntityAcls?q=roleAssignee`
+
+### Step 5: Add to `.env`
+
+```env
+LINKEDIN_ACCESS_TOKEN=AQV...your-access-token
+LINKEDIN_ORGANIZATION_ID=12345678
+```
+
+### Capabilities
+
+| Feature | Supported |
+|---------|-----------|
+| Fetch organization post comments | ✅ |
+| Delete comments | ✅ |
+| Reply to comments | ✅ |
+| Bulk delete | ✅ |
+| Auto-moderation pipeline | ✅ |
+
+---
+
+## 6. Pinterest (API v5)
+
+Pinterest uses the **Pinterest API v5** with a **Bearer Token**.
+
+> [!IMPORTANT]
+> Pinterest API v5 supports **read-only** access to pin comments. Deleting or hiding comments is **not supported** via the API.
+
+### Step 1: Create Pinterest App
+
+1. Go to [Pinterest Developer Portal](https://developers.pinterest.com/apps/)
+2. Click **Create app**
+3. Fill in app name and description
+
+### Step 2: Get Access Token
+
+1. In your app dashboard, go to **Generate Access Token**
+2. Select these scopes:
+   - `boards:read`
+   - `pins:read`
+3. Copy the access token
+
+> [!NOTE]
+> Pinterest access tokens do not expire by default, but you should regenerate if you change scopes.
+
+### Step 3: Add to `.env`
+
+```env
+PINTEREST_ACCESS_TOKEN=pina_...your-access-token
+```
+
+### Capabilities
+
+| Feature | Supported |
+|---------|-----------|
+| Fetch board pins | ✅ |
+| Fetch pin comments | ✅ |
+| Auto-moderation pipeline | ✅ |
+| Delete comments | ❌ (not supported by API) |
+| Hide comments | ❌ (not supported by API) |
+
+---
+
 ## Common Integration Flow
 
-All four platforms follow the same unified flow once credentials are configured:
+All six platforms follow the same unified flow once credentials are configured:
 
 ```mermaid
 sequenceDiagram
@@ -379,7 +481,7 @@ Every platform's comments are normalized into this shape before storage:
 ```typescript
 interface UnifiedComment {
   external_id: string;    // Platform's native comment ID
-  platform: "youtube" | "instagram" | "facebook" | "twitter";
+  platform: "youtube" | "instagram" | "facebook" | "twitter" | "linkedin" | "pinterest";
   author: string;         // Display name or @username
   text: string;           // Comment body
   created_at: string;     // ISO 8601 timestamp
@@ -443,6 +545,13 @@ FACEBOOK_PAGE_ID=
 # ─── Twitter / X (API v2) ────────────────────────────────
 TWITTER_BEARER_TOKEN=
 TWITTER_USER_ID=
+
+# ─── LinkedIn (Community Management API) ─────────────────
+LINKEDIN_ACCESS_TOKEN=
+LINKEDIN_ORGANIZATION_ID=
+
+# ─── Pinterest (API v5) ──────────────────────────────────
+PINTEREST_ACCESS_TOKEN=
 ```
 
 ---
@@ -473,6 +582,14 @@ curl -X POST http://localhost:5000/api/rpc/testFacebookConnection \
 # Test Twitter
 curl -X POST http://localhost:5000/api/rpc/testTwitterConnection \
   -H "Content-Type: application/json" -d '{}'
+
+# Test LinkedIn
+curl -X POST http://localhost:5000/api/rpc/testLinkedinConnection \
+  -H "Content-Type: application/json" -d '{}'
+
+# Test Pinterest
+curl -X POST http://localhost:5000/api/rpc/testPinterestConnection \
+  -H "Content-Type: application/json" -d '{}'
 ```
 
 ---
@@ -491,6 +608,10 @@ curl -X POST http://localhost:5000/api/rpc/testTwitterConnection \
 | Facebook token expired | Re-generate a long-lived Page Access Token (see Facebook section) |
 | Twitter 429 errors | Rate limit reached — wait 15 minutes (Free tier: 15 requests/15 min window) |
 | Twitter "Could not resolve user id" | Set `TWITTER_USER_ID` explicitly in `.env` |
+| LinkedIn "Unauthorized" | Access token expired — re-authorize via OAuth (tokens last 60 days) |
+| LinkedIn 403 errors | Ensure Community Management API product is approved for your app |
+| Pinterest 403 errors | Ensure `boards:read` and `pins:read` scopes are granted |
+| Pinterest "delete not supported" | Pinterest API does not allow deleting/hiding comments — use manual moderation |
 | CORS errors | Ensure the backend is running on port 5000 |
 
 ### Token Expiration Guide
@@ -501,11 +622,13 @@ curl -X POST http://localhost:5000/api/rpc/testTwitterConnection \
 | Instagram | 60 days (long-lived) | ❌ No — manually renew |
 | Facebook | Never (Page token from long-lived user token) | ✅ Page tokens don't expire |
 | Twitter | Never (Bearer token) | ✅ No refresh needed |
+| LinkedIn | 60 days (OAuth token) | ❌ No — manually re-authorize |
+| Pinterest | Never (unless scopes change) | ✅ No refresh needed |
 
 ### Logs
 
 Backend logs are printed to the terminal running `npm start` in `moderation-backend/`. Look for:
-- `[youtube]`, `[instagram]`, `[facebook]`, `[twitter]` — platform-specific logs
+- `[youtube]`, `[instagram]`, `[facebook]`, `[twitter]`, `[linkedin]`, `[pinterest]` — platform-specific logs
 - `[moderation]` — AI analysis pipeline logs
 - `[tokenStore]` — OAuth token persistence logs
 

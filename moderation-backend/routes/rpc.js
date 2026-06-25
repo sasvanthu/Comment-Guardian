@@ -37,6 +37,14 @@ router.post('/testTwitterConnection', c.testTwitterConnection);
 router.post('/syncTwitterNow', c.syncTwitterNow);
 router.post('/disconnectTwitter', c.disconnectTwitter);
 
+router.post('/testLinkedinConnection', c.testLinkedinConnection);
+router.post('/syncLinkedinNow', c.syncLinkedinNow);
+router.post('/disconnectLinkedin', c.disconnectLinkedin);
+
+router.post('/testPinterestConnection', c.testPinterestConnection);
+router.post('/syncPinterestNow', c.syncPinterestNow);
+router.post('/disconnectPinterest', c.disconnectPinterest);
+
 router.post('/executePlatformActions', c.executePlatformActions);
 
 module.exports = router;

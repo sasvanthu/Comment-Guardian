@@ -4,9 +4,9 @@
  * live in *.server.ts files and are only callable from server functions.
  */
 
-export type PlatformId = "twitter" | "facebook" | "instagram" | "youtube";
+export type PlatformId = "twitter" | "facebook" | "instagram" | "youtube" | "linkedin" | "pinterest";
 
-export const PLATFORM_IDS: readonly PlatformId[] = ["twitter", "facebook", "instagram", "youtube"] as const;
+export const PLATFORM_IDS: readonly PlatformId[] = ["facebook", "instagram", "youtube", "linkedin", "twitter", "pinterest"] as const;
 
 export type ConnectionStatus =
   | "connected"

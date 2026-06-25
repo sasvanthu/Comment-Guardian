@@ -364,6 +364,54 @@ exports.disconnectTwitter = async (req, res, next) => {
   } catch (e) { next(e); }
 };
 
+// --- LinkedIn ---
+const linkedinService = require('../services/linkedinService');
+
+exports.testLinkedinConnection = async (req, res, next) => {
+  try {
+    const result = await linkedinService.testLinkedinConnection();
+    res.json(result);
+  } catch (e) { next(e); }
+};
+
+exports.syncLinkedinNow = async (req, res, next) => {
+  try {
+    const result = await linkedinService.syncLinkedinForUser(supabaseAdmin, req.body.userId || 'dummy-user');
+    res.json(result);
+  } catch (e) { next(e); }
+};
+
+exports.disconnectLinkedin = async (req, res, next) => {
+  try {
+    await linkedinService.disconnectLinkedinForUser(supabaseAdmin, req.body.userId || 'dummy-user');
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+};
+
+// --- Pinterest ---
+const pinterestService = require('../services/pinterestService');
+
+exports.testPinterestConnection = async (req, res, next) => {
+  try {
+    const result = await pinterestService.testPinterestConnection();
+    res.json(result);
+  } catch (e) { next(e); }
+};
+
+exports.syncPinterestNow = async (req, res, next) => {
+  try {
+    const result = await pinterestService.syncPinterestForUser(supabaseAdmin, req.body.userId || 'dummy-user');
+    res.json(result);
+  } catch (e) { next(e); }
+};
+
+exports.disconnectPinterest = async (req, res, next) => {
+  try {
+    await pinterestService.disconnectPinterestForUser(supabaseAdmin, req.body.userId || 'dummy-user');
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+};
+
 exports.executePlatformActions = async (req, res, next) => {
   try {
     const { actions } = req.body;
@@ -384,6 +432,8 @@ exports.executePlatformActions = async (req, res, next) => {
       else if (platform === 'facebook') svc = facebookService;
       else if (platform === 'instagram') svc = instagramService;
       else if (platform === 'youtube') svc = youtubeService;
+      else if (platform === 'linkedin') svc = linkedinService;
+      else if (platform === 'pinterest') svc = pinterestService;
       else {
         results.push({ externalId, success: false, error: `Unknown platform: ${platform}` });
         continue;
